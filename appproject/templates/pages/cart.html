@@ -1,20 +1,31 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h1>Your Cart</h1>
+<h1>Tu Carrito</h1>
+
+{% if cart_items %}
 <table>
     <tr>
-        <th>Product</th>
-        <th>Quantity</th>
-        <th>Price</th>
+        <th>Producto</th>
+        <th>Cantidad</th>
+        <th>Precio Unitario</th>
+        <th>Total por Producto</th>
     </tr>
-    {% for item in cart.items.all %}
+    {% for item in cart_items %}
     <tr>
         <td>{{ item.product.name }}</td>
         <td>{{ item.quantity }}</td>
-        <td>${{ item.product.price }}</td>
+        <td>S/{{ item.product.price|floatformat:2 }}</td>
+        <td>S/{{ item.total_price|floatformat:2 }}</td> <!-- Usamos el total calculado en la vista -->
     </tr>
     {% endfor %}
 </table>
-<a href="{% url 'checkout' %}">Proceed to Checkout</a>
+
+<p><strong>Precio Total:</strong> S/{{ total_price|floatformat:2 }}</p>
+<a href="{% url 'checkout' %}">Ir al Checkout</a>
+
+{% else %}
+<p>Tu carrito está vacío.</p>
+<a href="{% url 'products_list' %}">Ver productos</a>
+{% endif %}
 {% endblock %}

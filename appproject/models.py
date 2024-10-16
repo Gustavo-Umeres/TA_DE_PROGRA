@@ -4,24 +4,6 @@ from django.contrib.auth.models import AbstractUser
 # Modelo de Usuario
 class User(AbstractUser):
     # Puedes añadir campos adicionales que necesites aquí
-    is_admin = models.BooleanField(default=False)  # Ejemplo de campo adicional
-
-    # Añade 'related_name' para evitar conflictos
-    groups = models.ManyToManyField(
-        'auth.Group',
-        related_name='appproject_user_groups',  # Cambiado aquí para evitar conflictos
-        blank=True,
-        help_text='Los grupos a los que pertenece este usuario.',
-        verbose_name='grupos'
-    )
-    user_permissions = models.ManyToManyField(
-        'auth.Permission',
-        related_name='appproject_user_permissions',  # Cambiado aquí para evitar conflictos
-        blank=True,
-        help_text='Permisos específicos para este usuario.',
-        verbose_name='permisos de usuario'
-    )
-
     def __str__(self):
         return self.username
 
@@ -41,7 +23,7 @@ class Product(models.Model):
     stock = models.PositiveIntegerField()
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
     image = models.ImageField(upload_to='products/')
-    created_at = models.DateTimeField(auto_now_add=True)  # Este campo debe estar presente
+    created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.name
@@ -53,8 +35,8 @@ class Order(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     total = models.DecimalField(max_digits=10, decimal_places=2)
     is_paid = models.BooleanField(default=False)
-    is_shipped = models.BooleanField(default=False)  # Para indicar si el pedido ha sido enviado
-    shipping_address = models.TextField()  # Dirección de envío
+    is_shipped = models.BooleanField(default=False)
+    shipping_address = models.TextField()
 
     def __str__(self):
         return f'Pedido {self.id} por {self.user.username}'
@@ -73,7 +55,7 @@ class OrderItem(models.Model):
 class Cart(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
-
+    
     def __str__(self):
         return f'Carrito para {self.user.username}'
 
@@ -81,10 +63,15 @@ class Cart(models.Model):
 class CartItem(models.Model):
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name='items')
     product = models.ForeignKey(Product, on_delete=models.CASCADE)
-    quantity = models.PositiveIntegerField()
+    quantity = models.PositiveIntegerField(default=1)  # Añadimos valor por defecto
 
     def __str__(self):
         return f'{self.quantity} de {self.product.name} en el carrito'
+
+    def save(self, *args, **kwargs):
+        if self.quantity < 1:
+            self.quantity = 1  # Asegurarse de que la cantidad mínima sea 1
+        super().save(*args, **kwargs)
 
 # Modelo de Revisión
 class Review(models.Model):

@@ -2,10 +2,16 @@
 
 {% block content %}
 <h1>Checkout</h1>
+
 <form method="POST">
     {% csrf_token %}
-    <label for="shipping_address">Shipping Address:</label>
+
+    <h3>Total a Pagar: S/{{ total_price|floatformat:2 }}</h3>
+
+    <label for="shipping_address">Dirección de Envío:</label>
     <textarea id="shipping_address" name="shipping_address" required></textarea>
-    <button type="submit">Place Order</button>
+
+    <button type="submit" class="btn-submit">Pagar</button>
 </form>
+
 {% endblock %}

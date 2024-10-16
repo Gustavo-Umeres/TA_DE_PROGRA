@@ -1,28 +1,60 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h1>{{ product.name }}</h1>
-<img src="{{ product.image.url }}" alt="{{ product.name }}">
-<p>${{ product.price }}</p>
-<p>{{ product.description }}</p>
-
-<h2>Reviews</h2>
-{% for review in reviews %}
-    <div>
-        <p><strong>{{ review.user.username }}</strong> (Rating: {{ review.rating }})</p>
-        <p>{{ review.comment }}</p>
+<div class="product-detail-container">
+    <h1>{{ product.name }}</h1>
+    <div class="product-image">
+        <img src="{{ product.image.url }}" alt="{{ product.name }}">
     </div>
-{% endfor %}
+    <div class="product-description">
+        <p><strong>Precio:</strong> ${{ product.price }}</p>
+        <p><strong>Descripción:</strong> {{ product.description }}</p>
+    </div>
 
-<h2>Add a Review</h2>
-<form method="POST">
-    {% csrf_token %}
-    <label for="rating">Rating:</label>
-    <input type="number" id="rating" name="rating" min="1" max="5" required>
-    
-    <label for="comment">Comment:</label>
-    <textarea id="comment" name="comment" required></textarea>
-    
-    <button type="submit">Submit Review</button>
-</form>
+    <!-- Formulario para agregar al carrito -->
+    <div class="add-to-cart">
+        <form method="POST" action="{% url 'add_to_cart' product.id %}">
+            {% csrf_token %}
+            <label for="quantity">Cantidad:</label>
+            <input type="number" id="quantity" name="quantity" min="1" max="{{ product.stock }}" value="1" required>
+            <button type="submit" class="btn-add-cart">Agregar al Carrito</button>
+        </form>
+    </div>
+
+    <!-- Sección de reseñas -->
+    <div class="reviews-section">
+        <h2>Reseñas del Producto</h2>
+        {% if reviews %}
+            {% for review in reviews %}
+            <div class="review-item">
+                <p><strong>{{ review.user.username }}</strong> (Calificación: {{ review.rating }}/5)</p>
+                <p>{{ review.comment }}</p>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p>Aún no hay reseñas para este producto.</p>
+        {% endif %}
+    </div>
+
+    <!-- Formulario para agregar una reseña -->
+    {% if user.is_authenticated %}
+    <div class="add-review-section">
+        <h2>Agrega una Reseña</h2>
+        <form method="POST">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="rating">Calificación:</label>
+                <input type="number" id="rating" name="rating" min="1" max="5" required>
+            </div>
+            <div class="form-group">
+                <label for="comment">Comentario:</label>
+                <textarea id="comment" name="comment" required></textarea>
+            </div>
+            <button type="submit" class="btn-submit-review">Enviar Reseña</button>
+        </form>
+    </div>
+    {% else %}
+    <p><a href="{% url 'login' %}">Inicia sesión</a> para dejar una reseña.</p>
+    {% endif %}
+</div>
 {% endblock %}

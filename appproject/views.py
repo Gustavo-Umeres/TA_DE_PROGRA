@@ -4,7 +4,7 @@ from django.contrib.auth import login, authenticate, logout
 from django.contrib import messages
 from django.contrib.auth import get_user_model  # Usar get_user_model para obtener el modelo de usuario personalizado
 from .forms import UserRegisterForm
-from .models import Product, Category, Cart, Order, OrderItem, Review
+from .models import Product, Category, Cart, Order, OrderItem, Review, CartItem
 
 User = get_user_model()  # Usar el modelo de usuario correcto
 
@@ -99,28 +99,97 @@ def edit_product(request, product_id):
     return render(request, 'pages/edit_product.html', {'product': product})
 
 @login_required
+def add_to_cart(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+    cart, created = Cart.objects.get_or_create(user=request.user)
+
+    if request.method == 'POST':
+        # Asegúrate de que 'quantity' viene en el POST request y convierte a entero.
+        try:
+            quantity = int(request.POST.get('quantity', 1))  # Por defecto 1 si no se especifica cantidad.
+        except (TypeError, ValueError):
+            messages.error(request, 'Cantidad no válida.')
+            return redirect('product_detail', product_id=product_id)
+
+        if quantity <= 0:
+            messages.error(request, 'La cantidad debe ser mayor que cero.')
+            return redirect('product_detail', product_id=product_id)
+
+        # Verifica si el ítem ya está en el carrito
+        cart_item, created = CartItem.objects.get_or_create(cart=cart, product=product)
+
+        if created:
+            # Si es un nuevo ítem, asigna la cantidad seleccionada
+            cart_item.quantity = quantity
+        else:
+            # Si el ítem ya existe, actualiza la cantidad
+            cart_item.quantity += quantity
+
+        cart_item.save()
+        messages.success(request, f'Agregaste {quantity} unidades de "{product.name}" al carrito.')
+        return redirect('products_list')
+
+    return redirect('product_detail', product_id=product_id)
+
+@login_required
 def view_cart(request):
-    # Obtén el carrito asociado al usuario actual
     cart = get_object_or_404(Cart, user=request.user)
-    return render(request, 'pages/cart.html', {'cart': cart})
+    cart_items = cart.items.all()
+
+    total_price = 0
+    for item in cart_items:
+        item.total_price = item.product.price * item.quantity  # Calcula el total por ítem
+        total_price += item.total_price  # Suma al precio total del carrito
+
+    return render(request, 'pages/cart.html', {
+        'cart_items': cart_items,
+        'total_price': total_price
+    })
+
 
 # Vista de checkout
 @login_required
 def checkout_view(request):
+    cart = get_object_or_404(Cart, user=request.user)
+    cart_items = cart.items.all()
+
+    total_price = 0
+    for item in cart_items:
+        item.total_price = item.product.price * item.quantity  # Calcula el total por ítem
+        total_price += item.total_price  # Suma al precio total del carrito
+
     if request.method == 'POST':
+        # Obtener la dirección de envío del formulario
         shipping_address = request.POST.get('shipping_address')
-        if shipping_address:  # Asegúrate de que la dirección de envío no esté vacía
-            cart = get_object_or_404(Cart, user=request.user)
-            total = sum(item.product.price * item.quantity for item in cart.items.all())
-            order = Order(user=request.user, shipping_address=shipping_address, total=total)
-            order.save()
-            for item in cart.items.all():
-                order_item = OrderItem(order=order, product=item.product, quantity=item.quantity, price=item.product.price)
-                order_item.save()
-            cart.items.all().delete()  # Limpiar el carrito después de realizar el pedido
-            messages.success(request, 'Pedido realizado exitosamente.')
-            return redirect('home')
-    return render(request, 'pages/checkout.html')
+        if shipping_address:
+            # Crear el pedido
+            order = Order.objects.create(
+                user=request.user,
+                shipping_address=shipping_address,
+                total=total_price,
+                is_paid=False  # Esto puede cambiar cuando se implemente el pago real
+            )
+
+            # Crear los ítems del pedido basados en los ítems del carrito
+            for item in cart_items:
+                OrderItem.objects.create(
+                    order=order,
+                    product=item.product,
+                    quantity=item.quantity,
+                    price=item.product.price
+                )
+
+            # Limpiar el carrito
+            cart_items.delete()
+
+            messages.success(request, 'Tu pedido ha sido realizado con éxito.')
+            return redirect('home')  # Redirigir a la página de inicio o una página de confirmación
+
+    return render(request, 'pages/checkout.html', {
+        'cart_items': cart_items,
+        'total_price': total_price
+    })
+
 
 # Vista de producto individual
 def product_detail(request, product_id):
