@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Panel de Administración</h1>
+<p>Desde aquí puedes administrar tus productos y pedidos.</p>
+<ul>
+    <li><a href="{% url 'add_product' %}">Agregar Producto</a></li>
+    <li><a href="{% url 'products_list' %}">Ver Productos</a></li>
+    <li><a href="{% url 'orders_list' %}">Ver Pedidos</a></li>
+</ul>
+{% endblock %}

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    {% load static %} <!-- Cargar la biblioteca de etiquetas de archivos estáticos -->
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <title>GOTTA - Ecommerce de Ropa</title>
+</head>
+
+<body>
+    <header>
+        <nav>
+            <ul>
+                <li><a href="{% url 'home' %}">Inicio</a></li>
+                <li><a href="{% url 'products_list' %}">Productos</a></li>
+                <li><a href="{% url 'about' %}">Nosotros</a></li>
+                <li><a href="{% url 'view_cart' %}">Carrito</a></li>
+                {% if user.is_authenticated %}
+                <li><a href="{% url 'logout' %}">Cerrar Sesión</a></li> <!-- Cierre de sesión -->
+                {% else %}
+                <li><a href="{% url 'login' %}">Iniciar Sesión</a></li>
+                <li><a href="{% url 'register' %}">Registrarse</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </header>
+
+    {% if messages %}
+    <section class="messages">
+        <ul>
+            {% for message in messages %}
+            <li{% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
+            {% endfor %}
+        </ul>
+    </section>
+    {% endif %}
+
+    <main>
+        {% block content %}
+        {% endblock %}
+    </main>
+    <footer>
+        <p>My Shop © 2024</p>
+    </footer>
+</body>
+
+</html>

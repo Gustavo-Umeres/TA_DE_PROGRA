@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% load static %}  <!-- Load the static files template tag library -->
+
+{% block content %}
+<h1>Welcome to GOTTA</h1>
+<div class="banner">
+    <img src="{% static 'images/banner.jpg' %}" alt="Banner">
+</div>
+
+<nav>
+    <ul>
+        {% for category in categories %}
+        <li><a href="#">{{ category.name }}</a></li>
+        {% endfor %}
+    </ul>
+</nav>
+
+<h2>Featured Products</h2>
+<div class="products">
+    {% for product in products %}
+    <div class="product">
+        <img src="{{ product.image.url }}" alt="{{ product.name }}">
+        <h3><a href="{% url 'product_detail' product.id %}">{{ product.name }}</a></h3>
+        <p>${{ product.price }}</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}
