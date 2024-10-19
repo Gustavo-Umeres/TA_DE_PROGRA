@@ -35,14 +35,11 @@ def register(request):
         form = UserRegisterForm()
     return render(request, 'registration/register.html', {'form': form})
 
-
 # Vista de inicio de sesión
 def login_view(request):
-    print("Cookies:", request.COOKIES)  # Mensaje de depuración
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
-        print(f"Intentando iniciar sesión con: {username}")
         user = authenticate(request, username=username, password=password)
         if user is not None:
             login(request, user)
@@ -104,7 +101,6 @@ def add_to_cart(request, product_id):
     cart, created = Cart.objects.get_or_create(user=request.user)
 
     if request.method == 'POST':
-        # Asegúrate de que 'quantity' viene en el POST request y convierte a entero.
         try:
             quantity = int(request.POST.get('quantity', 1))  # Por defecto 1 si no se especifica cantidad.
         except (TypeError, ValueError):
@@ -145,7 +141,6 @@ def view_cart(request):
         'cart_items': cart_items,
         'total_price': total_price
     })
-
 
 # Vista de checkout
 @login_required
@@ -189,7 +184,6 @@ def checkout_view(request):
         'cart_items': cart_items,
         'total_price': total_price
     })
-
 
 # Vista de producto individual
 def product_detail(request, product_id):

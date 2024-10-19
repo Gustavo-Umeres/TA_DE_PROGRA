@@ -15,6 +15,13 @@ class Category(models.Model):
     def __str__(self):
         return self.name
 
+# Modelo de Talla
+class Size(models.Model):
+    name = models.CharField(max_length=10, unique=True)
+
+    def __str__(self):
+        return self.name
+
 # Modelo de Producto
 class Product(models.Model):
     name = models.CharField(max_length=255)
@@ -27,6 +34,15 @@ class Product(models.Model):
 
     def __str__(self):
         return self.name
+
+# Modelo de Relación entre Producto y Talla
+class ProductSize(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='sizes')
+    size = models.ForeignKey(Size, on_delete=models.CASCADE)
+    stock = models.PositiveIntegerField(default=0)
+
+    def __str__(self):
+        return f'{self.product.name} - Talla: {self.size.name}'
 
 # Modelo de Pedido
 class Order(models.Model):
@@ -44,29 +60,29 @@ class Order(models.Model):
 # Modelo de Ítem de Pedido
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    product_size = models.ForeignKey(ProductSize, on_delete=models.CASCADE)  # Relación con tamaño específico
     quantity = models.PositiveIntegerField()
     price = models.DecimalField(max_digits=10, decimal_places=2)
 
     def __str__(self):
-        return f'{self.quantity} de {self.product.name} en el pedido {self.order.id}'
+        return f'{self.quantity} de {self.product_size.product.name} (Talla: {self.product_size.size.name}) en el pedido {self.order.id}'
 
 # Modelo de Carrito
 class Cart(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
-    
+
     def __str__(self):
         return f'Carrito para {self.user.username}'
 
 # Modelo de Ítem de Carrito
 class CartItem(models.Model):
     cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name='items')
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
+    product_size = models.ForeignKey(ProductSize, on_delete=models.CASCADE)  # Relación con tamaño específico
     quantity = models.PositiveIntegerField(default=1)  # Añadimos valor por defecto
 
     def __str__(self):
-        return f'{self.quantity} de {self.product.name} en el carrito'
+        return f'{self.quantity} de {self.product_size.product.name} (Talla: {self.product_size.size.name}) en el carrito'
 
     def save(self, *args, **kwargs):
         if self.quantity < 1:

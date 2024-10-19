@@ -11,15 +11,114 @@
         <p><strong>Descripción:</strong> {{ product.description }}</p>
     </div>
 
-    <!-- Formulario para agregar al carrito -->
-    <div class="add-to-cart">
-        <form method="POST" action="{% url 'add_to_cart' product.id %}">
-            {% csrf_token %}
-            <label for="quantity">Cantidad:</label>
-            <input type="number" id="quantity" name="quantity" min="1" max="{{ product.stock }}" value="1" required>
-            <button type="submit" class="btn-add-cart">Agregar al Carrito</button>
-        </form>
-    </div>
+    <!-- Comprobación de tallas disponibles -->
+    {% if product.sizes.all %}
+        <div class="product-sizes">
+            {% if product.sizes.count > 1 %}
+                <h3>Tallas Disponibles:</h3>
+                <form id="size-selection-form">
+                    <label for="size">Selecciona una Talla:</label>
+                    <select id="size" name="size" onchange="toggleQuantityInput()">
+                        <option value="">-- Selecciona una Talla --</option>
+                        {% for product_size in product.sizes.all %}
+                            <option value="{{ product_size.size.id }}" data-stock="{{ product_size.stock }}">
+                                {{ product_size.size.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </form>
+            {% else %}
+                {% for product_size in product.sizes.all %}
+                    {% if product_size.size.name != "NONE" %}
+                        <h3>Talla Seleccionada: {{ product_size.size.name }}</h3>
+                        <script>
+                            // Seleccionar automáticamente la talla si no hay otras
+                            document.getElementById('size').value = "{{ product_size.size.id }}";
+                            document.getElementById('size').style.display = 'none'; // Ocultar el selector
+                            document.getElementById('add-to-cart').style.display = 'block'; // Mostrar apartado de cantidad
+                        </script>
+                    {% else %}
+                        <h3></h3>
+                        <div class="add-to-cart" id="add-to-cart" style="display: block;">
+                            <form method="POST" action="{% url 'add_to_cart' product.id %}">
+                                {% csrf_token %}
+                                <label for="quantity">Cantidad:</label>
+                                <input type="number" id="quantity" name="quantity" min="1" value="1" max="{{ product_size.stock }}" required>
+                                <button type="submit" class="btn-add-cart">Agregar al Carrito</button>
+                            </form>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
+        </div>
+
+        <!-- Apartado de cantidad (oculto inicialmente) -->
+        <div class="add-to-cart" id="add-to-cart" style="display: none;">
+            <form method="POST" action="{% url 'add_to_cart' product.id %}">
+                {% csrf_token %}
+                <label for="quantity">Cantidad:</label>
+                <input type="number" id="quantity" name="quantity" min="1" value="1" required>
+                <button type="submit" class="btn-add-cart">Agregar al Carrito</button>
+            </form>
+        </div>
+        
+    {% else %}
+        <!-- Si solo hay talla "NONE", mostrar directamente el apartado de cantidad -->
+        <p>No hay tallas disponibles para este producto. Puedes seleccionar la cantidad:</p>
+        <div class="add-to-cart" id="add-to-cart" style="display: block;">
+            <form method="POST" action="{% url 'add_to_cart' product.id %}">
+                {% csrf_token %}
+                <label for="quantity">Cantidad:</label>
+                <input type="number" id="quantity" name="quantity" min="1" value="1" required>
+                <button type="submit" class="btn-add-cart">Agregar al Carrito</button>
+            </form>
+        </div>
+    {% endif %}
+    
+    <script>
+        // Función para verificar si "NONE" está en las tallas
+        function checkForNone() {
+            const select = document.getElementById('size');
+            const options = select.options;
+            let noneFound = false;
+
+            for (let i = 0; i < options.length; i++) {
+                if (options[i].text === "NONE") {
+                    noneFound = true; // Marcar que se encontró "NONE"
+                    options[i].selected = true; // Seleccionar automáticamente "NONE"
+                    break; // No es necesario seguir buscando
+                }
+            }
+
+            // Si se encontró "NONE", ocultar el menú de selección de tallas y mostrar la cantidad
+            if (noneFound) {
+                select.style.display = 'none'; // Ocultar el selector de tallas
+                document.getElementById('add-to-cart').style.display = 'block'; // Mostrar el apartado de cantidad
+            }
+        }
+
+        // Mostrar u ocultar el apartado de cantidad según la selección de talla
+        function toggleQuantityInput() {
+            const select = document.getElementById('size');
+            const selectedValue = select.value;
+            const quantityDiv = document.getElementById('add-to-cart');
+
+            if (selectedValue) {
+                // Si hay una talla seleccionada, mostrar el apartado de cantidad
+                quantityDiv.style.display = 'block';
+                // Ajustar el stock máximo según la talla seleccionada
+                const selectedOption = select.options[select.selectedIndex];
+                const stock = parseInt(selectedOption.dataset.stock);
+                document.getElementById('quantity').max = stock;
+            } else {
+                // Si no se selecciona una talla, ocultar el apartado de cantidad
+                quantityDiv.style.display = 'none';
+            }
+        }
+
+        // Llamar a la función para verificar tallas al cargar la página
+        window.onload = checkForNone;
+    </script>
 
     <!-- Sección de reseñas -->
     <div class="reviews-section">

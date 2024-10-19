@@ -1,47 +1,56 @@
 from django.contrib import admin
-from django.contrib.auth.admin import UserAdmin
-from .models import Product, Category, Cart, CartItem, Order, OrderItem, Review, User
+from .models import User, Category, Size, Product, ProductSize, Order, OrderItem, Cart, CartItem, Review
 
-# Registra el modelo User con el admin predeterminado de Django
-admin.site.register(User, UserAdmin)
+@admin.register(User)
+class UserAdmin(admin.ModelAdmin):
+    list_display = ('username', 'email', 'is_staff', 'is_active')
+    search_fields = ('username', 'email')
 
-# Configuración del administrador para el modelo Product
-class ProductAdmin(admin.ModelAdmin):
-    list_display = ('name', 'price', 'stock', 'category', 'created_at')  # Incluido created_at
-    search_fields = ('name', 'description')
-    list_filter = ('category',)
-
-# Configuración del administrador para el modelo Category
+@admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
+    list_display = ('name', 'description')
+    search_fields = ('name',)
+
+@admin.register(Size)
+class SizeAdmin(admin.ModelAdmin):
     list_display = ('name',)
+    search_fields = ('name',)
 
-# Inline para CartItem en Cart
-class CartItemInline(admin.TabularInline):
-    model = CartItem
-    extra = 0
+@admin.register(Product)
+class ProductAdmin(admin.ModelAdmin):
+    list_display = ('name', 'price', 'stock', 'category', 'created_at')
+    list_filter = ('category',)
+    search_fields = ('name', 'description')
 
-# Configuración del administrador para el modelo Cart
-class CartAdmin(admin.ModelAdmin):
-    inlines = [CartItemInline]
-    list_display = ('user',)  # Muestra solo el usuario
+@admin.register(ProductSize)
+class ProductSizeAdmin(admin.ModelAdmin):
+    list_display = ('product', 'size', 'stock')
+    search_fields = ('product__name', 'size__name')
 
-# Inline para OrderItem en Order
-class OrderItemInline(admin.TabularInline):
-    model = OrderItem
-    extra = 0
-
-# Configuración del administrador para el modelo Order
+@admin.register(Order)
 class OrderAdmin(admin.ModelAdmin):
-    inlines = [OrderItemInline]
-    list_display = ('user', 'total', 'created_at', 'shipping_address', 'is_paid', 'is_shipped')  # Incluido is_paid e is_shipped
+    list_display = ('id', 'user', 'total', 'is_paid', 'is_shipped', 'created_at')
+    list_filter = ('is_paid', 'is_shipped')
+    search_fields = ('user__username',)
 
-# Configuración del administrador para el modelo Review
+@admin.register(OrderItem)
+class OrderItemAdmin(admin.ModelAdmin):
+    list_display = ('order', 'product_size', 'quantity', 'price')
+    search_fields = ('order__id', 'product_size__product__name')
+
+@admin.register(Cart)
+class CartAdmin(admin.ModelAdmin):
+    list_display = ('user', 'created_at')
+    search_fields = ('user__username',)
+
+@admin.register(CartItem)
+class CartItemAdmin(admin.ModelAdmin):
+    list_display = ('cart', 'product_size', 'quantity')
+    search_fields = ('cart__user__username', 'product_size__product__name')
+
+@admin.register(Review)
 class ReviewAdmin(admin.ModelAdmin):
     list_display = ('product', 'user', 'rating', 'created_at')
+    list_filter = ('rating',)
+    search_fields = ('product__name', 'user__username')
 
-# Registro de los demás modelos en el panel de administración
-admin.site.register(Product, ProductAdmin)
-admin.site.register(Category, CategoryAdmin)
-admin.site.register(Cart, CartAdmin)
-admin.site.register(Order, OrderAdmin)
-admin.site.register(Review, ReviewAdmin)
