@@ -4,7 +4,7 @@ from django.contrib.auth import login, authenticate, logout
 from django.contrib import messages
 from django.contrib.auth import get_user_model  # Usar get_user_model para obtener el modelo de usuario personalizado
 from .forms import UserRegisterForm
-from .models import Product, Category, Cart, Order, OrderItem, Review, CartItem
+from .models import Product, Category, Cart, Order, OrderItem, Review, CartItem, ProductSize
 
 User = get_user_model()  # Usar el modelo de usuario correcto
 
@@ -52,31 +52,35 @@ def login_view(request):
 
 # Vista de agregar producto (para administradores)
 @login_required
-def add_product(request):
+def add_product_to_cart(request):
     if request.method == 'POST':
-        name = request.POST.get('name')
-        description = request.POST.get('description')
-        price = request.POST.get('price')
-        stock = request.POST.get('stock')
-        category_id = request.POST.get('category')
-        image = request.FILES.get('image')
+        # Obteniendo los datos del producto desde la solicitud POST
+        product_id = request.POST.get('product_id')
+        size_id = request.POST.get('size_id')
+        quantity = int(request.POST.get('quantity', 1))  # La cantidad que se desea agregar
+        
+        # Validación del producto y talla
+        product = get_object_or_404(Product, id=product_id)
+        product_size = get_object_or_404(ProductSize, product=product, size_id=size_id)
+        
+        # Obtenemos o creamos el carrito del usuario
+        cart, created = Cart.objects.get_or_create(user=request.user)
+        
+        # Verificamos si el item ya está en el carrito
+        cart_item, created = CartItem.objects.get_or_create(cart=cart, product_size=product_size)
+        
+        if created:
+            cart_item.quantity = quantity
+        else:
+            cart_item.quantity += quantity
+        
+        cart_item.save()
 
-        if all([name, description, price, stock, category_id, image]):  # Verificar que todos los campos estén presentes
-            category = get_object_or_404(Category, id=category_id)
-            product = Product(
-                name=name,
-                description=description,
-                price=price,
-                stock=stock,
-                category=category,
-                image=image
-            )
-            product.save()
-            messages.success(request, 'Producto agregado exitosamente.')
-            return redirect('products_list')
+        messages.success(request, f'{quantity} unidad(es) de "{product.name}" han sido agregadas al carrito.')
+        return redirect('products_list')  # Redirigir a la lista de productos o donde prefieras
 
-    categories = Category.objects.all()
-    return render(request, 'pages/add_product.html', {'categories': categories})
+    return redirect('products_list')  # Redirigir si no es una solicitud POST
+
 
 # Vista de editar producto (para administradores)
 @login_required
@@ -95,6 +99,7 @@ def edit_product(request, product_id):
 
     return render(request, 'pages/edit_product.html', {'product': product})
 
+
 @login_required
 def add_to_cart(request, product_id):
     product = get_object_or_404(Product, id=product_id)
@@ -102,7 +107,7 @@ def add_to_cart(request, product_id):
 
     if request.method == 'POST':
         try:
-            quantity = int(request.POST.get('quantity', 1))  # Por defecto 1 si no se especifica cantidad.
+            quantity = int(request.POST.get('quantity', 1))
         except (TypeError, ValueError):
             messages.error(request, 'Cantidad no válida.')
             return redirect('product_detail', product_id=product_id)
@@ -111,14 +116,16 @@ def add_to_cart(request, product_id):
             messages.error(request, 'La cantidad debe ser mayor que cero.')
             return redirect('product_detail', product_id=product_id)
 
+        # Aquí debes obtener el tamaño correspondiente de la forma que necesites
+        size_id = request.POST.get('size_id')  # Asegúrate de que estás obteniendo el ID de la talla
+        product_size = get_object_or_404(ProductSize, product=product, size_id=size_id)
+
         # Verifica si el ítem ya está en el carrito
-        cart_item, created = CartItem.objects.get_or_create(cart=cart, product=product)
+        cart_item, created = CartItem.objects.get_or_create(cart=cart, product_size=product_size)
 
         if created:
-            # Si es un nuevo ítem, asigna la cantidad seleccionada
             cart_item.quantity = quantity
         else:
-            # Si el ítem ya existe, actualiza la cantidad
             cart_item.quantity += quantity
 
         cart_item.save()
@@ -126,6 +133,7 @@ def add_to_cart(request, product_id):
         return redirect('products_list')
 
     return redirect('product_detail', product_id=product_id)
+
 
 @login_required
 def view_cart(request):
