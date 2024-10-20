@@ -5,6 +5,15 @@ from django.contrib import messages
 from django.contrib.auth import get_user_model  # Usar get_user_model para obtener el modelo de usuario personalizado
 from .forms import UserRegisterForm
 from .models import Product, Category, Cart, Order, OrderItem, Review, CartItem, ProductSize
+from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth.forms import UserChangeForm
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render, redirect
+from django.contrib import messages
+from .forms import UserEditForm
+import mercadopago
+from django.conf import settings
+
 
 User = get_user_model()  # Usar el modelo de usuario correcto
 
@@ -208,44 +217,43 @@ def checkout_view(request):
 
     total_price = 0
     for item in cart_items:
-        # Acceder al producto a través de 'product_size'
-        item_total_price = item.product_size.product.price * item.quantity  # Calcula el total por ítem
-        item.total_price = item_total_price
-        total_price += item_total_price  # Suma al precio total del carrito
+        item_total_price = float(item.product_size.product.price * item.quantity)  # Asegúrate de convertir a float
+        total_price += item_total_price
 
     if request.method == 'POST':
-        # Obtener la dirección de envío del formulario
+        # Obtener dirección de envío del formulario
         shipping_address = request.POST.get('shipping_address')
-        if shipping_address:
-            # Crear el pedido
-            order = Order.objects.create(
-                user=request.user,
-                shipping_address=shipping_address,
-                total=total_price,
-                is_paid=False  # Esto puede cambiar cuando se implemente el pago real
-            )
 
-            # Crear los ítems del pedido basados en los ítems del carrito
-            for item in cart_items:
-                # Aquí guardamos el precio total (precio por cantidad)
-                OrderItem.objects.create(
-                    order=order,
-                    product_size=item.product_size,
-                    quantity=item.quantity,
-                    price=item.total_price  # Guardar el precio total (precio unitario * cantidad)
-                )
+        # Verificar que la dirección esté presente
+        if not shipping_address:
+            messages.error(request, 'Por favor, proporciona una dirección de envío.')
+            return redirect('checkout')
 
-            # Limpiar el carrito
-            cart_items.delete()
+        # Guardar en la sesión, convertir total_price a float
+        request.session['shipping_address'] = shipping_address
+        request.session['total_price'] = float(total_price)  # Convertir el total a float
+        request.session.modified = True  # Asegúrate de que la sesión se actualice
 
-            messages.success(request, 'Tu pedido ha sido realizado con éxito.')
-            return redirect('home')  # Redirigir a la página de inicio o una página de confirmación
+        # Redirigir al usuario a la vista de procesar pago
+        return redirect('procesar_pago')
 
     return render(request, 'pages/checkout.html', {
         'cart_items': cart_items,
         'total_price': total_price
     })
 
+@login_required
+def profile_view(request):
+    if request.method == 'POST':
+        form = UserEditForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Tu perfil ha sido actualizado correctamente.')
+            return redirect('profile')
+    else:
+        form = UserEditForm(instance=request.user)
+
+    return render(request, 'pages/profile.html', {'form': form})
 
 
 # Vista de detalle del producto
@@ -265,6 +273,33 @@ def product_detail(request, product_id):
             messages.error(request, 'Por favor, llena todos los campos.')
 
     return render(request, 'pages/product_detail.html', {'product': product, 'reviews': reviews})
+
+@login_required
+def update_cart(request):
+    cart = get_object_or_404(Cart, user=request.user)
+    if request.method == 'POST':
+        action = request.POST.get('action')
+
+        for item in cart.items.all():
+            item_id = item.id
+
+            if f'remove_{item_id}' in action:
+                item.delete()  # Elimina el ítem del carrito
+                messages.success(request, f'El producto "{item.product_size.product.name}" ha sido eliminado del carrito.')
+            
+            elif f'decrease_{item_id}' in action and item.quantity > 1:
+                item.quantity -= 1  # Disminuye la cantidad
+                item.save()
+                messages.success(request, f'Se ha disminuido la cantidad de "{item.product_size.product.name}".')
+            
+            elif f'increase_{item_id}' in action:
+                item.quantity += 1  # Aumenta la cantidad
+                item.save()
+                messages.success(request, f'Se ha aumentado la cantidad de "{item.product_size.product.name}".')
+
+        return redirect('view_cart')  # Redirige nuevamente al carrito
+
+    return redirect('view_cart')
 
 
 # Vista de agregar revisión
@@ -288,3 +323,114 @@ def logout_view(request):
     logout(request)
     messages.success(request, 'Has cerrado sesión exitosamente.')
     return redirect('home')
+
+
+
+
+
+
+@login_required
+def procesar_pago(request):
+    sdk = mercadopago.SDK(settings.MERCADOPAGO_ACCESS_TOKEN)
+
+    # Depuración para verificar los valores de la sesión
+    shipping_address = request.session.get('shipping_address')
+    total_price = request.session.get('total_price')
+
+    # Verificar que los datos existan
+    if not shipping_address or not total_price:
+        messages.error(request, 'Hubo un problema con los datos de envío o el total a pagar.')
+        return redirect('checkout')
+
+    cart = get_object_or_404(Cart, user=request.user)
+    cart_items = cart.items.all()
+
+    items = []
+    for item in cart_items:
+        product_name = item.product_size.product.name
+        product_price = float(item.product_size.product.price)
+        quantity = item.quantity
+
+        items.append({
+            "title": product_name,
+            "quantity": quantity,
+            "unit_price": product_price,
+            "currency_id": "PEN"  # O la moneda que utilices
+        })
+
+    # Crear la preferencia de pago
+    preference_data = {
+        "items": items,
+        "payer": {
+            "email": request.user.email,
+        },
+        "back_urls": {
+            "success": "http://localhost:8000/pagos/exito/",
+            "failure": "http://localhost:8000/pagos/fallo/",
+            "pending": "http://localhost:8000/pagos/pendiente/",
+        },
+        "auto_return": "approved",
+        "shipment": {
+            "receiver_address": {
+                "street_name": shipping_address,  # Dirección de envío
+            }
+        }
+    }
+
+    preference_response = sdk.preference().create(preference_data)
+    preference = preference_response["response"]
+
+    # Redirigir al usuario al sandbox de Mercado Pago
+    return redirect(preference['init_point'])
+
+
+@login_required
+def pago_exito(request):
+    # Verificar que los datos de la sesión existan
+    shipping_address = request.session.get('shipping_address')
+    total_price = request.session.get('total_price')
+
+    # Imprimir valores de la sesión para depuración
+    print(f"Shipping Address: {shipping_address}, Total Price: {total_price}")
+
+    if not shipping_address or not total_price:
+        messages.error(request, 'Hubo un problema con el pago. Intenta nuevamente.')
+        return redirect('checkout')
+
+    # Crear el pedido
+    cart = get_object_or_404(Cart, user=request.user)
+    cart_items = cart.items.all()
+
+    order = Order.objects.create(
+        user=request.user,
+        shipping_address=shipping_address,
+        total=total_price,
+        is_paid=True
+    )
+
+    # Crear los ítems del pedido basados en el carrito
+    for item in cart_items:
+        OrderItem.objects.create(
+            order=order,
+            product_size=item.product_size,
+            quantity=item.quantity,
+            price=item.product_size.product.price * item.quantity
+        )
+
+    # Limpiar el carrito
+    cart_items.delete()
+
+    messages.success(request, 'El pago fue exitoso y tu pedido ha sido creado.')
+    return redirect('home')
+
+@login_required
+def pago_fallo(request):
+    messages.error(request, 'El pago falló. Intenta nuevamente.')
+    return redirect('checkout')
+
+@login_required
+def pago_pendiente(request):
+    messages.warning(request, 'El pago está pendiente. Te notificaremos cuando se complete.')
+    return redirect('home')
+
+

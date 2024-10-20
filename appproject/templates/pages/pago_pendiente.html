@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>Pago Pendiente</h1>
+    <p>Tu pago está pendiente de confirmación. Te notificaremos tan pronto como sea confirmado.</p>
+
+    <a href="{% url 'home' %}" class="btn">Volver al inicio</a>
+    <a href="{% url 'products_list' %}" class="btn">Seguir comprando</a>
+{% endblock %}

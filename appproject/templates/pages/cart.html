@@ -5,36 +5,50 @@
     <h1>Tu Carrito</h1>
 
     {% if cart_items %}
-    <table class="cart-table">
-        <thead>
-            <tr>
-                <th>Producto</th>
-                <th>Talla</th>
-                <th>Cantidad</th>
-                <th>Precio Unitario</th>
-                <th>Total por Producto</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for item in cart_items %}
-            <tr>
-                <td>{{ item.product_size.product.name }}</td>
-                <!-- Mostrar la talla solo si no es "NONE" -->
-                <td>
-                    {% if item.product_size.size.name != "NONE" %}
-                        {{ item.product_size.size.name }}
-                    {% else %}
-                        <!-- Si es "NONE", no mostrar nada -->
-                        -
-                    {% endif %}
-                </td>
-                <td>{{ item.quantity }}</td>
-                <td>S/{{ item.product_size.product.price|floatformat:2 }}</td>
-                <td>S/{{ item.total_price|floatformat:2 }}</td> <!-- Usamos el total calculado en la vista -->
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <form action="{% url 'update_cart' %}" method="post"> <!-- Enviar cambios en cantidades -->
+        {% csrf_token %}
+        <table class="cart-table">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Talla</th>
+                    <th>Cantidad</th>
+                    <th>Precio Unitario</th>
+                    <th>Total por Producto</th>
+                    <th>Acciones</th> <!-- Columna para acciones -->
+                </tr>
+            </thead>
+            <tbody>
+                {% for item in cart_items %}
+                <tr>
+                    <td>{{ item.product_size.product.name }}</td>
+                    <!-- Mostrar la talla solo si no es "NONE" -->
+                    <td>
+                        {% if item.product_size.size.name != "NONE" %}
+                            {{ item.product_size.size.name }}
+                        {% else %}
+                            <!-- Si es "NONE", no mostrar nada -->
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        <!-- Botón para disminuir la cantidad -->
+                        <button type="submit" name="action" value="decrease_{{ item.id }}">-</button>
+                        <input type="number" name="quantity_{{ item.id }}" value="{{ item.quantity }}" min="1" readonly>
+                        <!-- Botón para aumentar la cantidad -->
+                        <button type="submit" name="action" value="increase_{{ item.id }}">+</button>
+                    </td>
+                    <td>S/{{ item.product_size.product.price|floatformat:2 }}</td>
+                    <td>S/{{ item.total_price|floatformat:2 }}</td> <!-- Usamos el total calculado en la vista -->
+                    <td>
+                        <!-- Botón para quitar el producto -->
+                        <button type="submit" name="action" value="remove_{{ item.id }}" class="btn btn-danger">Quitar</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </form>
 
     <div class="cart-summary">
         <p><strong>Precio Total:</strong> S/{{ total_price|floatformat:2 }}</p>

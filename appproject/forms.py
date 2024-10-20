@@ -3,6 +3,27 @@ from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth import get_user_model
 
 User = get_user_model()  # Obtiene el modelo de usuario personalizado
+class UserEditForm(forms.ModelForm):
+    email = forms.EmailField(
+        required=True, 
+        help_text="Requerido. Ingrese una dirección de correo válida."
+    )
+    first_name = forms.CharField(
+        max_length=30, required=True, help_text='Requerido. Ingrese su nombre.'
+    )
+    last_name = forms.CharField(
+        max_length=30, required=True, help_text='Requerido. Ingrese su apellido.'
+    )
+    
+    class Meta:
+        model = User
+        fields = ['first_name', 'last_name', 'email', 'username']  # Incluye los campos que deseas editar
+    
+    def clean_email(self):
+        email = self.cleaned_data.get('email')
+        if User.objects.filter(email=email).exclude(pk=self.instance.pk).exists():
+            raise forms.ValidationError("Este correo electrónico ya está en uso.")
+        return email
 
 class UserRegisterForm(UserCreationForm):
     email = forms.EmailField(

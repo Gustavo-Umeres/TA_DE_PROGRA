@@ -3,15 +3,14 @@
 {% block content %}
 <h1>Checkout</h1>
 
-<form method="POST">
+<form action="{% url 'checkout' %}" method="POST">
     {% csrf_token %}
-
+    
     <h3>Total a Pagar: S/{{ total_price|floatformat:2 }}</h3>
 
     <label for="shipping_address">Dirección de Envío:</label>
-    <textarea id="shipping_address" name="shipping_address" required></textarea>
+    <textarea id="shipping_address" name="shipping_address" required>{{ shipping_address }}</textarea>
 
-    <button type="submit" class="btn-submit">Pagar</button>
+    <button type="submit" class="btn-submit">Pagar con Mercado Pago</button>
 </form>
-
 {% endblock %}

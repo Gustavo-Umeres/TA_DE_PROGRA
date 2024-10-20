@@ -16,9 +16,19 @@
                 <li><a href="{% url 'home' %}">Inicio</a></li>
                 <li><a href="{% url 'products_list' %}">Productos</a></li>
                 <li><a href="{% url 'about' %}">Nosotros</a></li>
-                <li><a href="{% url 'view_cart' %}">Carrito</a></li>
+                <li>
+                    <a href="{% url 'view_cart' %}">
+                        Carrito
+                        {% with cart_items_count=request.user.cart.items.count %}
+                        {% if cart_items_count > 0 %}
+                        <span class="cart-count">{{ cart_items_count }}</span>
+                        {% endif %}
+                        {% endwith %}
+                    </a>
+                </li>
                 {% if user.is_authenticated %}
                 <li><a href="{% url 'logout' %}">Cerrar Sesión</a></li> <!-- Cierre de sesión -->
+                <li><a href="{% url 'profile' %}">Mi Perfil</a></li>
                 {% else %}
                 <li><a href="{% url 'login' %}">Iniciar Sesión</a></li>
                 <li><a href="{% url 'register' %}">Registrarse</a></li>
@@ -32,7 +42,7 @@
         <ul>
             {% for message in messages %}
             <li{% if message.tags %} class="{{ message.tags }}" {% endif %}>{{ message }}</li>
-            {% endfor %}
+                {% endfor %}
         </ul>
     </section>
     {% endif %}
