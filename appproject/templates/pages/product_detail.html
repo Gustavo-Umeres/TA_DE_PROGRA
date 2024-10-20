@@ -16,9 +16,10 @@
         <div class="product-sizes">
             {% if product.sizes.count > 1 %}
                 <h3>Tallas Disponibles:</h3>
-                <form id="size-selection-form">
+                <form id="size-selection-form" method="POST" action="{% url 'add_to_cart' product.id %}">
+                    {% csrf_token %}
                     <label for="size">Selecciona una Talla:</label>
-                    <select id="size" name="size" onchange="toggleQuantityInput()">
+                    <select id="size" name="size_id" onchange="toggleQuantityInput()">
                         <option value="">-- Selecciona una Talla --</option>
                         {% for product_size in product.sizes.all %}
                             <option value="{{ product_size.size.id }}" data-stock="{{ product_size.stock }}">
@@ -26,78 +27,38 @@
                             </option>
                         {% endfor %}
                     </select>
+                    <div class="add-to-cart" id="add-to-cart" style="display: none;">
+                        <label for="quantity">Cantidad:</label>
+                        <input type="number" id="quantity" name="quantity" min="1" value="1" required>
+                        <button type="submit" class="btn-add-cart">Agregar al Carrito</button>
+                    </div>
                 </form>
             {% else %}
+                <!-- Si solo hay una talla, mostrarla automáticamente -->
                 {% for product_size in product.sizes.all %}
-                    {% if product_size.size.name != "NONE" %}
-                        <h3>Talla Seleccionada: {{ product_size.size.name }}</h3>
-                        <script>
-                            // Seleccionar automáticamente la talla si no hay otras
-                            document.getElementById('size').value = "{{ product_size.size.id }}";
-                            document.getElementById('size').style.display = 'none'; // Ocultar el selector
-                            document.getElementById('add-to-cart').style.display = 'block'; // Mostrar apartado de cantidad
-                        </script>
-                    {% else %}
-                        <h3></h3>
-                        <div class="add-to-cart" id="add-to-cart" style="display: block;">
-                            <form method="POST" action="{% url 'add_to_cart' product.id %}">
-                                {% csrf_token %}
-                                <label for="quantity">Cantidad:</label>
-                                <input type="number" id="quantity" name="quantity" min="1" value="1" max="{{ product_size.stock }}" required>
-                                <button type="submit" class="btn-add-cart">Agregar al Carrito</button>
-                            </form>
-                        </div>
-                    {% endif %}
+                    <form method="POST" action="{% url 'add_to_cart' product.id %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="size_id" value="{{ product_size.size.id }}">
+                        <label for="quantity">Cantidad:</label>
+                        <input type="number" id="quantity" name="quantity" min="1" value="1" max="{{ product_size.stock }}" required>
+                        <button type="submit" class="btn-add-cart">Agregar al Carrito</button>
+                    </form>
                 {% endfor %}
             {% endif %}
         </div>
-
-        <!-- Apartado de cantidad (oculto inicialmente) -->
-        <div class="add-to-cart" id="add-to-cart" style="display: none;">
-            <form method="POST" action="{% url 'add_to_cart' product.id %}">
-                {% csrf_token %}
-                <label for="quantity">Cantidad:</label>
-                <input type="number" id="quantity" name="quantity" min="1" value="1" required>
-                <button type="submit" class="btn-add-cart">Agregar al Carrito</button>
-            </form>
-        </div>
-        
     {% else %}
-        <!-- Si solo hay talla "NONE", mostrar directamente el apartado de cantidad -->
+        <!-- Si no hay tallas disponibles -->
         <p>No hay tallas disponibles para este producto. Puedes seleccionar la cantidad:</p>
-        <div class="add-to-cart" id="add-to-cart" style="display: block;">
-            <form method="POST" action="{% url 'add_to_cart' product.id %}">
-                {% csrf_token %}
-                <label for="quantity">Cantidad:</label>
-                <input type="number" id="quantity" name="quantity" min="1" value="1" required>
-                <button type="submit" class="btn-add-cart">Agregar al Carrito</button>
-            </form>
-        </div>
+        <form method="POST" action="{% url 'add_to_cart' product.id %}">
+            {% csrf_token %}
+            <label for="quantity">Cantidad:</label>
+            <input type="number" id="quantity" name="quantity" min="1" value="1" required>
+            <button type="submit" class="btn-add-cart">Agregar al Carrito</button>
+        </form>
     {% endif %}
     
     <script>
-        // Función para verificar si "NONE" está en las tallas
-        function checkForNone() {
-            const select = document.getElementById('size');
-            const options = select.options;
-            let noneFound = false;
-
-            for (let i = 0; i < options.length; i++) {
-                if (options[i].text === "NONE") {
-                    noneFound = true; // Marcar que se encontró "NONE"
-                    options[i].selected = true; // Seleccionar automáticamente "NONE"
-                    break; // No es necesario seguir buscando
-                }
-            }
-
-            // Si se encontró "NONE", ocultar el menú de selección de tallas y mostrar la cantidad
-            if (noneFound) {
-                select.style.display = 'none'; // Ocultar el selector de tallas
-                document.getElementById('add-to-cart').style.display = 'block'; // Mostrar el apartado de cantidad
-            }
-        }
-
-        // Mostrar u ocultar el apartado de cantidad según la selección de talla
+        // Función para mostrar/ocultar el campo de cantidad según la selección de talla
         function toggleQuantityInput() {
             const select = document.getElementById('size');
             const selectedValue = select.value;
@@ -116,8 +77,8 @@
             }
         }
 
-        // Llamar a la función para verificar tallas al cargar la página
-        window.onload = checkForNone;
+        // Llamar a la función para verificar la selección de talla al cargar la página
+        window.onload = toggleQuantityInput;
     </script>
 
     <!-- Sección de reseñas -->
@@ -125,10 +86,10 @@
         <h2>Reseñas del Producto</h2>
         {% if reviews %}
             {% for review in reviews %}
-            <div class="review-item">
-                <p><strong>{{ review.user.username }}</strong> (Calificación: {{ review.rating }}/5)</p>
-                <p>{{ review.comment }}</p>
-            </div>
+                <div class="review-item">
+                    <p><strong>{{ review.user.username }}</strong> (Calificación: {{ review.rating }}/5)</p>
+                    <p>{{ review.comment }}</p>
+                </div>
             {% endfor %}
         {% else %}
             <p>Aún no hay reseñas para este producto.</p>
@@ -137,23 +98,23 @@
 
     <!-- Formulario para agregar una reseña -->
     {% if user.is_authenticated %}
-    <div class="add-review-section">
-        <h2>Agrega una Reseña</h2>
-        <form method="POST">
-            {% csrf_token %}
-            <div class="form-group">
-                <label for="rating">Calificación:</label>
-                <input type="number" id="rating" name="rating" min="1" max="5" required>
-            </div>
-            <div class="form-group">
-                <label for="comment">Comentario:</label>
-                <textarea id="comment" name="comment" required></textarea>
-            </div>
-            <button type="submit" class="btn-submit-review">Enviar Reseña</button>
-        </form>
-    </div>
+        <div class="add-review-section">
+            <h2>Agrega una Reseña</h2>
+            <form method="POST">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="rating">Calificación:</label>
+                    <input type="number" id="rating" name="rating" min="1" max="5" required>
+                </div>
+                <div class="form-group">
+                    <label for="comment">Comentario:</label>
+                    <textarea id="comment" name="comment" required></textarea>
+                </div>
+                <button type="submit" class="btn-submit-review">Enviar Reseña</button>
+            </form>
+        </div>
     {% else %}
-    <p><a href="{% url 'login' %}">Inicia sesión</a> para dejar una reseña.</p>
+        <p><a href="{% url 'login' %}">Inicia sesión</a> para dejar una reseña.</p>
     {% endif %}
 </div>
 {% endblock %}

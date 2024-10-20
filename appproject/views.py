@@ -28,12 +28,20 @@ def register(request):
             user.is_staff = False  # No debe ser parte del staff
             user.is_superuser = False  # No debe ser superusuario
             user.save()
-            login(request, user)
-            messages.success(request, 'Registro exitoso.')
-            return redirect('home')
+            
+            # Autenticar al usuario antes de iniciar sesión
+            raw_password = form.cleaned_data.get('password1')
+            user = authenticate(username=user.username, password=raw_password)
+            
+            if user is not None:
+                login(request, user)
+                messages.success(request, 'Registro exitoso. Te has iniciado sesión automáticamente.')
+                return redirect('home')
     else:
         form = UserRegisterForm()
+    
     return render(request, 'registration/register.html', {'form': form})
+
 
 # Vista de inicio de sesión
 def login_view(request):
@@ -81,6 +89,46 @@ def add_product_to_cart(request):
 
     return redirect('products_list')  # Redirigir si no es una solicitud POST
 
+
+
+@login_required
+def add_to_cart(request, product_id):
+    product = get_object_or_404(Product, id=product_id)
+    cart, created = Cart.objects.get_or_create(user=request.user)
+
+    if request.method == 'POST':
+        try:
+            quantity = int(request.POST.get('quantity', 1))
+        except (TypeError, ValueError):
+            messages.error(request, 'Cantidad no válida.')
+            return redirect('product_detail', product_id=product_id)
+
+        if quantity <= 0:
+            messages.error(request, 'La cantidad debe ser mayor que cero.')
+            return redirect('product_detail', product_id=product_id)
+
+        # Obtener el size_id desde el formulario
+        size_id = request.POST.get('size_id')
+        if not size_id:
+            messages.error(request, 'Por favor selecciona una talla.')
+            return redirect('product_detail', product_id=product_id)
+
+        # Verificar que el tamaño del producto existe
+        product_size = get_object_or_404(ProductSize, product=product, size_id=size_id)
+
+        # Verificar si el ítem ya está en el carrito
+        cart_item, created = CartItem.objects.get_or_create(cart=cart, product_size=product_size)
+
+        if created:
+            cart_item.quantity = quantity
+        else:
+            cart_item.quantity += quantity
+
+        cart_item.save()
+        messages.success(request, f'Agregaste {quantity} unidades de "{product.name}" al carrito.')
+        return redirect('products_list')
+
+    return redirect('product_detail', product_id=product_id)
 
 # Vista de editar producto (para administradores)
 @login_required
@@ -142,13 +190,15 @@ def view_cart(request):
 
     total_price = 0
     for item in cart_items:
-        item.total_price = item.product.price * item.quantity  # Calcula el total por ítem
+        # Acceder al producto a través de 'product_size'
+        item.total_price = item.product_size.product.price * item.quantity  # Calcula el total por ítem
         total_price += item.total_price  # Suma al precio total del carrito
 
     return render(request, 'pages/cart.html', {
         'cart_items': cart_items,
         'total_price': total_price
     })
+
 
 # Vista de checkout
 @login_required
@@ -158,8 +208,10 @@ def checkout_view(request):
 
     total_price = 0
     for item in cart_items:
-        item.total_price = item.product.price * item.quantity  # Calcula el total por ítem
-        total_price += item.total_price  # Suma al precio total del carrito
+        # Acceder al producto a través de 'product_size'
+        item_total_price = item.product_size.product.price * item.quantity  # Calcula el total por ítem
+        item.total_price = item_total_price
+        total_price += item_total_price  # Suma al precio total del carrito
 
     if request.method == 'POST':
         # Obtener la dirección de envío del formulario
@@ -175,11 +227,12 @@ def checkout_view(request):
 
             # Crear los ítems del pedido basados en los ítems del carrito
             for item in cart_items:
+                # Aquí guardamos el precio total (precio por cantidad)
                 OrderItem.objects.create(
                     order=order,
-                    product=item.product,
+                    product_size=item.product_size,
                     quantity=item.quantity,
-                    price=item.product.price
+                    price=item.total_price  # Guardar el precio total (precio unitario * cantidad)
                 )
 
             # Limpiar el carrito
@@ -193,11 +246,26 @@ def checkout_view(request):
         'total_price': total_price
     })
 
-# Vista de producto individual
+
+
+# Vista de detalle del producto
 def product_detail(request, product_id):
     product = get_object_or_404(Product, id=product_id)
-    reviews = product.reviews.all()  # Obtener las revisiones del producto
+    reviews = product.reviews.all()  # Obtener todas las reseñas del producto
+
+    if request.method == 'POST' and request.user.is_authenticated:
+        rating = request.POST.get('rating')
+        comment = request.POST.get('comment')
+        
+        if rating and comment:  # Asegúrate de que ambos campos estén presentes
+            Review.objects.create(product=product, user=request.user, rating=rating, comment=comment)
+            messages.success(request, 'Revisión agregada exitosamente.')
+            return redirect('product_detail', product_id=product.id)
+        else:
+            messages.error(request, 'Por favor, llena todos los campos.')
+
     return render(request, 'pages/product_detail.html', {'product': product, 'reviews': reviews})
+
 
 # Vista de agregar revisión
 @login_required

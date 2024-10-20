@@ -1,31 +1,51 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h1>Tu Carrito</h1>
+<div class="cart-container">
+    <h1>Tu Carrito</h1>
 
-{% if cart_items %}
-<table>
-    <tr>
-        <th>Producto</th>
-        <th>Cantidad</th>
-        <th>Precio Unitario</th>
-        <th>Total por Producto</th>
-    </tr>
-    {% for item in cart_items %}
-    <tr>
-        <td>{{ item.product.name }}</td>
-        <td>{{ item.quantity }}</td>
-        <td>S/{{ item.product.price|floatformat:2 }}</td>
-        <td>S/{{ item.total_price|floatformat:2 }}</td> <!-- Usamos el total calculado en la vista -->
-    </tr>
-    {% endfor %}
-</table>
+    {% if cart_items %}
+    <table class="cart-table">
+        <thead>
+            <tr>
+                <th>Producto</th>
+                <th>Talla</th>
+                <th>Cantidad</th>
+                <th>Precio Unitario</th>
+                <th>Total por Producto</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in cart_items %}
+            <tr>
+                <td>{{ item.product_size.product.name }}</td>
+                <!-- Mostrar la talla solo si no es "NONE" -->
+                <td>
+                    {% if item.product_size.size.name != "NONE" %}
+                        {{ item.product_size.size.name }}
+                    {% else %}
+                        <!-- Si es "NONE", no mostrar nada -->
+                        -
+                    {% endif %}
+                </td>
+                <td>{{ item.quantity }}</td>
+                <td>S/{{ item.product_size.product.price|floatformat:2 }}</td>
+                <td>S/{{ item.total_price|floatformat:2 }}</td> <!-- Usamos el total calculado en la vista -->
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 
-<p><strong>Precio Total:</strong> S/{{ total_price|floatformat:2 }}</p>
-<a href="{% url 'checkout' %}">Ir al Checkout</a>
+    <div class="cart-summary">
+        <p><strong>Precio Total:</strong> S/{{ total_price|floatformat:2 }}</p>
+        <a href="{% url 'checkout' %}" class="btn btn-primary">Ir al Checkout</a>
+    </div>
 
-{% else %}
-<p>Tu carrito está vacío.</p>
-<a href="{% url 'products_list' %}">Ver productos</a>
-{% endif %}
+    {% else %}
+    <div class="empty-cart">
+        <p>Tu carrito está vacío.</p>
+        <a href="{% url 'products_list' %}" class="btn btn-secondary">Ver productos</a>
+    </div>
+    {% endif %}
+</div>
 {% endblock %}
