@@ -1,12 +1,38 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="profile-container">
-    <h1>Editar Perfil</h1>
-    <form method="POST">
+<div id="profile-container" class="profile-container">
+    <h1 id="titulo-editar-perfil">Editar Perfil</h1>
+    <form id="form-editar-perfil" method="POST">
         {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+    
+        <!-- First Name -->
+        <div class="form-row">
+            <label for="id_first_name">First Name:</label>
+            {{ form.first_name }}
+        </div>
+    
+        <!-- Last Name -->
+        <div class="form-row">
+            <label for="id_last_name">Last Name:</label>
+            {{ form.last_name }}
+        </div>
+    
+        <!-- Email -->
+        <div class="form-row">
+            <label for="id_email">Email:</label>
+            {{ form.email }}
+        </div>
+    
+        <!-- Username -->
+        <div class="form-row">
+            <label for="id_username">Nombre de Usuario:</label>
+            {{ form.username }}
+        </div>
+    
+        <!-- Botón de guardar cambios -->
+        <button id="btn-guardar-cambios" type="submit" class="btn btn-primary">Guardar Cambios</button>
     </form>
+    
 </div>
 {% endblock %}

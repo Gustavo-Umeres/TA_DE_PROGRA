@@ -13,7 +13,10 @@ from django.contrib import messages
 from .forms import UserEditForm
 import mercadopago
 from django.conf import settings
-
+from django.core.paginator import Paginator
+from django.db.models import Q
+from django.http import JsonResponse
+from django.template.loader import render_to_string
 
 User = get_user_model()  # Usar el modelo de usuario correcto
 
@@ -54,6 +57,7 @@ def register(request):
 
 # Vista de inicio de sesión
 def login_view(request):
+    
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
@@ -432,5 +436,46 @@ def pago_fallo(request):
 def pago_pendiente(request):
     messages.warning(request, 'El pago está pendiente. Te notificaremos cuando se complete.')
     return redirect('home')
+
+
+def products_list(request):
+    product_list = Product.objects.all().order_by('name')  # Agregar un campo para ordenar
+    paginator = Paginator(product_list, 12)  # Muestra 12 productos por página
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    return render(request, 'pages/products_list.html', {'page_obj': page_obj})
+
+
+def products_list(request):
+    query = request.GET.get('q')  # Obtener el término de búsqueda
+    products = Product.objects.all()
+
+    if query:
+        products = products.filter(
+            Q(name__icontains=query) | Q(description__icontains=query)
+        )  # Filtrar por nombre o descripción que contengan el término de búsqueda
+
+    paginator = Paginator(products, 12)  # Muestra 12 productos por página
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    return render(request, 'pages/products_list.html', {'page_obj': page_obj})
+
+def search_products(request):
+    query = request.GET.get('q', '')  # Obtener el término de búsqueda
+    products = Product.objects.filter(Q(name__icontains=query) | Q(description__icontains=query)).order_by('name')
+
+    # Serializamos los productos
+    products_list = [
+        {
+            'id': product.id,
+            'name': product.name,
+            'price': product.price,
+            'image': product.image.url,
+        }
+        for product in products
+    ]
+
+    return JsonResponse({'products': products_list})
 
 

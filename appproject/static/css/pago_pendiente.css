@@ -1,0 +1,45 @@
+/* pago_pendiente.html */
+#titulo-pago-pendiente {
+    font-size: 2rem;
+    text-align: center;
+    margin-bottom: 20px;
+    color: #f39c12;
+}
+
+#mensaje-pago-pendiente {
+    font-size: 1.2rem;
+    text-align: center;
+    margin-bottom: 30px;
+    color: #f5f5f5;
+}
+
+#btn-volver-inicio {
+    display: inline-block;
+    padding: 12px 20px;
+    background-color: #88c0d0;
+    color: #1c1c1c;
+    border-radius: 8px;
+    font-size: 1.2rem;
+    transition: background-color 0.3s ease;
+    text-decoration: none;
+    margin-right: 10px;
+}
+
+#btn-volver-inicio:hover {
+    background-color: #5e8391;
+}
+
+#btn-seguir-comprando {
+    display: inline-block;
+    padding: 12px 20px;
+    background-color: #88c0d0;
+    color: #1c1c1c;
+    border-radius: 8px;
+    font-size: 1.2rem;
+    transition: background-color 0.3s ease;
+    text-decoration: none;
+}
+
+#btn-seguir-comprando:hover {
+    background-color: #5e8391;
+}

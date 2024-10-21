@@ -1,13 +1,13 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="cart-container">
-    <h1>Tu Carrito</h1>
+<div id="cart-container" class="cart-container">
+    <h1 id="titulo-carrito">Tu Carrito</h1>
 
     {% if cart_items %}
-    <form action="{% url 'update_cart' %}" method="post"> <!-- Enviar cambios en cantidades -->
+    <form id="form-update-cart" action="{% url 'update_cart' %}" method="post"> <!-- Enviar cambios en cantidades -->
         {% csrf_token %}
-        <table class="cart-table">
+        <table id="cart-table" class="cart-table">
             <thead>
                 <tr>
                     <th>Producto</th>
@@ -15,34 +15,30 @@
                     <th>Cantidad</th>
                     <th>Precio Unitario</th>
                     <th>Total por Producto</th>
-                    <th>Acciones</th> <!-- Columna para acciones -->
+                    <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
                 {% for item in cart_items %}
-                <tr>
-                    <td>{{ item.product_size.product.name }}</td>
+                <tr id="cart-item-{{ item.id }}">
+                    <td class="product-name">{{ item.product_size.product.name }}</td>
                     <!-- Mostrar la talla solo si no es "NONE" -->
                     <td>
                         {% if item.product_size.size.name != "NONE" %}
                             {{ item.product_size.size.name }}
                         {% else %}
-                            <!-- Si es "NONE", no mostrar nada -->
                             -
                         {% endif %}
                     </td>
-                    <td>
-                        <!-- Botón para disminuir la cantidad -->
-                        <button type="submit" name="action" value="decrease_{{ item.id }}">-</button>
-                        <input type="number" name="quantity_{{ item.id }}" value="{{ item.quantity }}" min="1" readonly>
-                        <!-- Botón para aumentar la cantidad -->
-                        <button type="submit" name="action" value="increase_{{ item.id }}">+</button>
+                    <td class="quantity-input">
+                        <button type="submit" name="action" value="decrease_{{ item.id }}" class="btn-quantity" id="btn-decrease-{{ item.id }}">-</button>
+                        <input type="number" id="quantity-{{ item.id }}" name="quantity_{{ item.id }}" value="{{ item.quantity }}" min="1" readonly>
+                        <button type="submit" name="action" value="increase_{{ item.id }}" class="btn-quantity" id="btn-increase-{{ item.id }}">+</button>
                     </td>
-                    <td>S/{{ item.product_size.product.price|floatformat:2 }}</td>
-                    <td>S/{{ item.total_price|floatformat:2 }}</td> <!-- Usamos el total calculado en la vista -->
+                    <td id="unit-price-{{ item.id }}">S/{{ item.product_size.product.price|floatformat:2 }}</td>
+                    <td id="total-price-{{ item.id }}">S/{{ item.total_price|floatformat:2 }}</td>
                     <td>
-                        <!-- Botón para quitar el producto -->
-                        <button type="submit" name="action" value="remove_{{ item.id }}" class="btn btn-danger">Quitar</button>
+                        <button id="btn-remove-{{ item.id }}" type="submit" name="action" value="remove_{{ item.id }}" class="btn btn-danger">Quitar</button>
                     </td>
                 </tr>
                 {% endfor %}
@@ -50,15 +46,15 @@
         </table>
     </form>
 
-    <div class="cart-summary">
-        <p><strong>Precio Total:</strong> S/{{ total_price|floatformat:2 }}</p>
-        <a href="{% url 'checkout' %}" class="btn btn-primary">Ir al Checkout</a>
+    <div id="cart-summary" class="cart-summary">
+        <p id="total-price-summary"><strong>Precio Total:</strong> S/{{ total_price|floatformat:2 }}</p>
+        <a id="btn-checkout" href="{% url 'checkout' %}" class="btn btn-primary">Ir al Checkout</a>
     </div>
 
     {% else %}
-    <div class="empty-cart">
+    <div id="empty-cart" class="empty-cart">
         <p>Tu carrito está vacío.</p>
-        <a href="{% url 'products_list' %}" class="btn btn-secondary">Ver productos</a>
+        <a id="btn-view-products" href="{% url 'products_list' %}" class="btn btn-secondary">Ver productos</a>
     </div>
     {% endif %}
 </div>

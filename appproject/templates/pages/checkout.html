@@ -1,16 +1,16 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h1>Checkout</h1>
+<h1 id="titulo-checkout">Checkout</h1>
 
-<form action="{% url 'checkout' %}" method="POST">
+<form id="form-checkout" action="{% url 'checkout' %}" method="POST">
     {% csrf_token %}
     
-    <h3>Total a Pagar: S/{{ total_price|floatformat:2 }}</h3>
+    <h3 id="total-pago">Total a Pagar: S/{{ total_price|floatformat:2 }}</h3>
 
-    <label for="shipping_address">Dirección de Envío:</label>
+    <label for="shipping_address" id="label-shipping-address">Dirección de Envío:</label>
     <textarea id="shipping_address" name="shipping_address" required>{{ shipping_address }}</textarea>
 
-    <button type="submit" class="btn-submit">Pagar con Mercado Pago</button>
+    <button id="btn-pagar" type="submit" class="btn-submit">Pagar con Mercado Pago</button>
 </form>
 {% endblock %}

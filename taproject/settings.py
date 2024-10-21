@@ -19,8 +19,9 @@ load_dotenv()
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 STATICFILES_DIRS = [
-    BASE_DIR / 'appproject/static',  # Cambia esta línea
+    BASE_DIR /'appproject/static',  # Cambia esta línea
 ]
+
 
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'django-insecure-morc&vzn=wesr&-nn9-ygt971ia6od6o75t9@b&+fk*2y!a*ds'

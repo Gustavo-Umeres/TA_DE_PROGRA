@@ -1,24 +1,24 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h1>Iniciar Sesión</h1>
+<h1 id="titulo-iniciar-sesion">Iniciar Sesión</h1>
 
-{% if messages %}
-    {% for message in messages %}
-        <div class="alert alert-{{ message.tags }}">
-            {{ message }}
-        </div>
-    {% endfor %}
-{% endif %}
-
-<form method="POST">
+<form id="form-iniciar-sesion" method="POST">
     {% csrf_token %}
-    <label for="username">Nombre de usuario:</label>
-    <input type="text" id="username" name="username" required>
     
-    <label for="password">Contraseña:</label>
-    <input type="password" id="password" name="password" required>
-    
-    <button type="submit">Iniciar Sesión</button>
+    <!-- Nombre de usuario -->
+    <div class="form-row">
+        <label for="username" id="label-username">Nombre de usuario:</label>
+        <input type="text" id="input-username" name="username" required>
+    </div>
+
+    <!-- Contraseña -->
+    <div class="form-row">
+        <label for="password" id="label-password">Contraseña:</label>
+        <input type="password" id="input-password" name="password" required>
+    </div>
+
+    <!-- Botón de iniciar sesión -->
+    <button id="btn-iniciar-sesion" type="submit" class="btn">Iniciar Sesión</button>
 </form>
 {% endblock %}

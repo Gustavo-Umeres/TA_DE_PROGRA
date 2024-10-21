@@ -1,9 +1,9 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h1>Pago Pendiente</h1>
-    <p>Tu pago está pendiente de confirmación. Te notificaremos tan pronto como sea confirmado.</p>
+    <h1 id="titulo-pago-pendiente">Pago Pendiente</h1>
+    <p id="mensaje-pago-pendiente">Tu pago está pendiente de confirmación. Te notificaremos tan pronto como sea confirmado.</p>
 
-    <a href="{% url 'home' %}" class="btn">Volver al inicio</a>
-    <a href="{% url 'products_list' %}" class="btn">Seguir comprando</a>
+    <a id="btn-volver-inicio" href="{% url 'home' %}" class="btn">Volver al inicio</a>
+    <a id="btn-seguir-comprando" href="{% url 'products_list' %}" class="btn">Seguir comprando</a>
 {% endblock %}

@@ -1,9 +1,9 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h1>Pago Fallido</h1>
-    <p>Hubo un problema al procesar tu pago. Por favor, intenta nuevamente o revisa los detalles de tu método de pago.</p>
+    <h1 id="titulo-pago-fallido">Pago Fallido</h1>
+    <p id="mensaje-pago-fallido">Hubo un problema al procesar tu pago. Por favor, intenta nuevamente o revisa los detalles de tu método de pago.</p>
 
-    <a href="{% url 'checkout' %}" class="btn">Intentar de nuevo</a>
-    <a href="{% url 'products_list' %}" class="btn">Volver a los productos</a>
+    <a id="btn-intentar-nuevo-pago" href="{% url 'checkout' %}" class="btn">Intentar de nuevo</a>
+    <a id="btn-volver-productos" href="{% url 'products_list' %}" class="btn">Volver a los productos</a>
 {% endblock %}

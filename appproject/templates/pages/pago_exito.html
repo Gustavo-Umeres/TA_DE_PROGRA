@@ -1,9 +1,9 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h1>¡Gracias por tu compra!</h1>
-    <p>Tu pago ha sido procesado con éxito. Tu pedido ha sido creado y será enviado a la dirección proporcionada.</p>
+    <h1 id="titulo-gracias-compra">¡Gracias por tu compra!</h1>
+    <p id="mensaje-gracias-compra">Tu pago ha sido procesado con éxito. Tu pedido ha sido creado y será enviado a la dirección proporcionada.</p>
 
-    <a href="{% url 'home' %}" class="btn">Volver al inicio</a>
-    <a href="{% url 'products_list' %}" class="btn">Seguir comprando</a>
+    <a id="btn-volver-inicio" href="{% url 'home' %}" class="btn">Volver al inicio</a>
+    <a id="btn-seguir-comprando" href="{% url 'products_list' %}" class="btn">Seguir comprando</a>
 {% endblock %}
