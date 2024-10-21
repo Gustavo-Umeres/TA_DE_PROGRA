@@ -12,10 +12,11 @@
 <nav id="category-nav">
     <ul id="category-list">
         {% for category in categories %}
-        <li id="category-item-{{ category.id }}"><a href="#">{{ category.name }}</a></li>
+        <li id="category-item-{{ category.id }}"><a href="{% url 'products_by_category' category.id %}">{{ category.name }}</a></li>
         {% endfor %}
     </ul>
 </nav>
+
 
 <h2 id="titulo-productos-destacados">Productos Destacados</h2>
 

@@ -275,3 +275,67 @@ button[type="submit"]:hover {
 button[type="submit"]:active {
     transform: translateY(0);  /* Sin elevación al hacer clic */
 }
+
+
+/* Contenedor de los filtros de categorías */
+.category-filters {
+    margin-bottom: 20px;
+    padding: 20px;
+    background-color: #1c1c1c; /* Fondo oscuro */
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Sombra sutil */
+    color: #f5f5f5; /* Texto claro */
+}
+
+/* Título de las categorías */
+.category-filters h3 {
+    font-size: 1.4rem;
+    margin-bottom: 15px;
+    color: #88c0d0; /* Color suave para el título */
+    text-align: center;
+    text-transform: uppercase; /* Texto en mayúsculas */
+    letter-spacing: 1px; /* Espaciado entre letras */
+}
+
+/* Lista de categorías */
+.category-filters ul {
+    list-style-type: none; /* Eliminamos los puntos de la lista */
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center; /* Centrar los elementos */
+}
+
+/* Elemento individual de la categoría */
+.category-filters ul li {
+    margin: 5px 10px; /* Espaciado entre elementos */
+}
+
+/* Enlaces de categorías */
+.category-filters ul li a {
+    color: #f5f5f5; /* Color del texto del enlace */
+    background-color: #2b2b2b; /* Fondo oscuro del enlace */
+    padding: 10px 20px;
+    border-radius: 5px;
+    text-decoration: none; /* Sin subrayado */
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    display: block; /* Hace que todo el área sea clickeable */
+    font-size: 1rem;
+    text-align: center;
+}
+
+/* Estilo al pasar el mouse sobre la categoría */
+.category-filters ul li a:hover {
+    background-color: #88c0d0; /* Cambia el fondo a un azul suave */
+    color: #1e1e1e; /* Texto más oscuro para contraste */
+    transform: translateY(-3px); /* Efecto de elevación */
+}
+
+/* Estilo para la categoría seleccionada */
+.category-filters ul li a.active {
+    background-color: #88c0d0; /* Color diferente para indicar la selección */
+    color: #1c1c1c; /* Texto más oscuro */
+    font-weight: bold;
+}
+

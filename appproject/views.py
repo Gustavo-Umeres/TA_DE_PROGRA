@@ -2,11 +2,9 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login, authenticate, logout
 from django.contrib import messages
-from django.contrib.auth import get_user_model  # Usar get_user_model para obtener el modelo de usuario personalizado
+from django.contrib.auth import get_user_model
 from .forms import UserRegisterForm
 from .models import Product, Category, Cart, Order, OrderItem, Review, CartItem, ProductSize
-from django.contrib.auth import update_session_auth_hash
-from django.contrib.auth.forms import UserChangeForm
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from django.contrib import messages
@@ -16,7 +14,6 @@ from django.conf import settings
 from django.core.paginator import Paginator
 from django.db.models import Q
 from django.http import JsonResponse
-from django.template.loader import render_to_string
 
 User = get_user_model()  # Usar el modelo de usuario correcto
 
@@ -447,30 +444,42 @@ def products_list(request):
 
 
 def products_list(request):
-    query = request.GET.get('q')  # Obtener el término de búsqueda
+    query = request.GET.get('q')  # Para la búsqueda
+    category_id = request.GET.get('category')  # Capturar el filtro de categoría
+
+    # Obtener todas las categorías
+    categories = Category.objects.all()
+
+    # Filtrar productos por búsqueda y/o categoría
     products = Product.objects.all()
-
+    
     if query:
-        products = products.filter(
-            Q(name__icontains=query) | Q(description__icontains=query)
-        )  # Filtrar por nombre o descripción que contengan el término de búsqueda
+        products = products.filter(name__icontains=query)
 
-    paginator = Paginator(products, 12)  # Muestra 12 productos por página
+    if category_id:
+        category = get_object_or_404(Category, id=category_id)
+        products = products.filter(category=category)
+
+    # Paginación de los productos
+    paginator = Paginator(products, 12)  # 12 productos por página
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    
-    return render(request, 'pages/products_list.html', {'page_obj': page_obj})
 
+    return render(request, 'pages/products_list.html', {
+        'categories': categories,
+        'page_obj': page_obj,
+        'selected_category': category_id
+    })
 def search_products(request):
     query = request.GET.get('q', '')  # Obtener el término de búsqueda
     products = Product.objects.filter(Q(name__icontains=query) | Q(description__icontains=query)).order_by('name')
 
-    # Serializamos los productos
+    # Serializar los productos
     products_list = [
         {
             'id': product.id,
             'name': product.name,
-            'price': product.price,
+            'price': str(product.price),  # Convertir el precio a string para el JSON
             'image': product.image.url,
         }
         for product in products
@@ -479,3 +488,21 @@ def search_products(request):
     return JsonResponse({'products': products_list})
 
 
+def products_by_category(request, category_id):
+    # Obtener la categoría o devolver un error 404 si no existe
+    category = get_object_or_404(Category, id=category_id)
+    
+    # Filtrar productos por la categoría seleccionada
+    products = Product.objects.filter(category=category)
+    
+    # Paginación
+    paginator = Paginator(products, 12)  # Muestra 12 productos por página
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    # Renderizar la página de productos filtrados por categoría
+    return render(request, 'pages/products_list.html', {
+        'category': category,
+        'page_obj': page_obj,  # Paginación de productos
+        'products': products  # Productos filtrados
+    })

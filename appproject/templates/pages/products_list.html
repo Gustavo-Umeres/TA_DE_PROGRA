@@ -6,11 +6,24 @@
 <!-- Formulario de búsqueda -->
 <input type="text" id="search-input" class="search-bar" placeholder="Buscar productos...">
 
+<!-- Filtros de categorías -->
+<div id="category-filters" class="category-filters">
+    <h3>Categorías</h3>
+    <ul>
+        <li><a href="{% url 'products_list' %}">Todas las Categorías</a></li>
+        {% for category in categories %}
+        <li>
+            <a href="?category={{ category.id }}">{{ category.name }}</a>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+
+
 <!-- Contenedor para los productos -->
 <div class="products" id="products-container">
     {% for product in page_obj %}
     <div class="product" id="product-{{ product.id }}">
-        <!-- Envolvemos la imagen y el nombre dentro del mismo enlace -->
         <a href="{% url 'product_detail' product.id %}" id="product-link-{{ product.id }}">
             <img id="product-image-{{ product.id }}" src="{{ product.image.url }}" alt="{{ product.name }}">
             <h3 id="product-name-{{ product.id }}">{{ product.name }}</h3>
@@ -22,58 +35,52 @@
     {% endfor %}
 </div>
 
-<!-- Paginación si es necesaria -->
+<!-- Paginación -->
 <div class="pagination" id="pagination-container">
-    <span class="step-links" id="pagination-links">
+    <span class="step-links">
         {% if page_obj.has_previous %}
-            <a id="first-page-link" href="?page=1">&laquo; Primera</a>
-            <a id="prev-page-link" href="?page={{ page_obj.previous_page_number }}">Anterior</a>
+            <a href="?page=1">&laquo; Primera</a>
+            <a href="?page={{ page_obj.previous_page_number }}">Anterior</a>
         {% endif %}
-
-        <span id="current-page" class="current">
-            Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
-        </span>
-
+        <span>Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
         {% if page_obj.has_next %}
-            <a id="next-page-link" href="?page={{ page_obj.next_page_number }}">Siguiente</a>
-            <a id="last-page-link" href="?page={{ page_obj.paginator.num_pages }}">Última &raquo;</a>
+            <a href="?page={{ page_obj.next_page_number }}">Siguiente</a>
+            <a href="?page={{ page_obj.paginator.num_pages }}">Última &raquo;</a>
         {% endif %}
     </span>
 </div>
 
-<!-- Script para realizar la búsqueda en tiempo real -->
+<!-- Script para la búsqueda en tiempo real -->
 <script>
 document.getElementById('search-input').addEventListener('keyup', function() {
     let query = this.value;
 
+    // Hacemos la solicitud de búsqueda
     fetch(`/products/search/?q=${query}`)
     .then(response => response.json())
     .then(data => {
         const productsContainer = document.getElementById('products-container');
-        const paginationContainer = document.getElementById('pagination-container');
-        
-        // Limpiar el contenedor de productos
         productsContainer.innerHTML = '';
 
-        // Actualizar productos
+        // Si se encuentran productos, los mostramos
         if (data.products.length > 0) {
             data.products.forEach(product => {
                 productsContainer.innerHTML += `
                     <div class="product" id="product-${product.id}">
-                        <a href="/product/${product.id}/" id="product-link-${product.id}">
-                            <img id="product-image-${product.id}" src="${product.image}" alt="${product.name}">
-                            <h3 id="product-name-${product.id}">${product.name}</h3>
+                        <a href="/product/${product.id}/">
+                            <img src="${product.image}" alt="${product.name}">
+                            <h3>${product.name}</h3>
                         </a>
-                        <p id="product-price-${product.id}">$${product.price}</p>
-                    </div>
-                `;
+                        <p>$${product.price}</p>
+                    </div>`;
             });
         } else {
+            // Si no se encuentran productos, mostramos el mensaje
             productsContainer.innerHTML = '<p id="no-products-message">No hay productos disponibles.</p>';
         }
 
-        // Actualizar paginación (opcional)
-        paginationContainer.innerHTML = data.pagination;
+        // Ocultamos la paginación cuando se usa la búsqueda
+        document.getElementById('pagination-container').style.display = query.length > 0 ? 'none' : 'block';
     });
 });
 </script>
