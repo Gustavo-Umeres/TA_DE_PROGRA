@@ -28,7 +28,7 @@
             <img id="product-image-{{ product.id }}" src="{{ product.image.url }}" alt="{{ product.name }}">
             <h3 id="product-name-{{ product.id }}">{{ product.name }}</h3>
         </a>
-        <p id="product-price-{{ product.id }}">${{ product.price }}</p>
+        <p id="product-price-{{ product.id }}">S/ {{ product.price }}</p>
     </div>
     {% empty %}
     <p id="no-products-message">No hay productos disponibles.</p>

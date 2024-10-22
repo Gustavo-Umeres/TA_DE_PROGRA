@@ -1,15 +1,16 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div id="cart-container" class="cart-container">
-    <h1 id="titulo-carrito">Tu Carrito</h1>
+<div id="unique-cart-container" class="cart-container">
+    <h1 id="unique-titulo-carrito">Tu Carrito</h1>
 
     {% if cart_items %}
-    <form id="form-update-cart" action="{% url 'update_cart' %}" method="post"> <!-- Enviar cambios en cantidades -->
+    <form id="unique-form-update-cart" action="{% url 'update_cart' %}" method="post"> <!-- Enviar cambios en cantidades -->
         {% csrf_token %}
-        <table id="cart-table" class="cart-table">
+        <table id="unique-cart-table" class="cart-table">
             <thead>
                 <tr>
+                    <th>Imagen</th>
                     <th>Producto</th>
                     <th>Talla</th>
                     <th>Cantidad</th>
@@ -20,9 +21,11 @@
             </thead>
             <tbody>
                 {% for item in cart_items %}
-                <tr id="cart-item-{{ item.id }}">
+                <tr id="unique-cart-item-{{ item.id }}">
+                    <td class="product-image">
+                        <img src="{{ item.product_size.product.image.url }}" alt="{{ item.product_size.product.name }}" width="100" height="100">
+                    </td>
                     <td class="product-name">{{ item.product_size.product.name }}</td>
-                    <!-- Mostrar la talla solo si no es "NONE" -->
                     <td>
                         {% if item.product_size.size.name != "NONE" %}
                             {{ item.product_size.size.name }}
@@ -31,14 +34,16 @@
                         {% endif %}
                     </td>
                     <td class="quantity-input">
-                        <button type="submit" name="action" value="decrease_{{ item.id }}" class="btn-quantity" id="btn-decrease-{{ item.id }}">-</button>
-                        <input type="number" id="quantity-{{ item.id }}" name="quantity_{{ item.id }}" value="{{ item.quantity }}" min="1" readonly>
-                        <button type="submit" name="action" value="increase_{{ item.id }}" class="btn-quantity" id="btn-increase-{{ item.id }}">+</button>
+                        <div class="input-group">
+                            <button type="submit" name="action" value="decrease_{{ item.id }}" class="btn-quantity" id="unique-btn-decrease-{{ item.id }}">-</button>
+                            <input type="number" id="unique-quantity-{{ item.id }}" name="quantity_{{ item.id }}" value="{{ item.quantity }}" min="1" readonly>
+                            <button type="submit" name="action" value="increase_{{ item.id }}" class="btn-quantity" id="unique-btn-increase-{{ item.id }}">+</button>
+                        </div>
                     </td>
-                    <td id="unit-price-{{ item.id }}">S/{{ item.product_size.product.price|floatformat:2 }}</td>
-                    <td id="total-price-{{ item.id }}">S/{{ item.total_price|floatformat:2 }}</td>
+                    <td id="unique-unit-price-{{ item.id }}">S/{{ item.product_size.product.price|floatformat:2 }}</td>
+                    <td id="unique-total-price-{{ item.id }}">S/{{ item.total_price|floatformat:2 }}</td>
                     <td>
-                        <button id="btn-remove-{{ item.id }}" type="submit" name="action" value="remove_{{ item.id }}" class="btn btn-danger">Quitar</button>
+                        <button id="unique-btn-remove-{{ item.id }}" type="submit" name="action" value="remove_{{ item.id }}" class="btn btn-danger">Quitar</button>
                     </td>
                 </tr>
                 {% endfor %}
@@ -46,15 +51,15 @@
         </table>
     </form>
 
-    <div id="cart-summary" class="cart-summary">
-        <p id="total-price-summary"><strong>Precio Total:</strong> S/{{ total_price|floatformat:2 }}</p>
-        <a id="btn-checkout" href="{% url 'checkout' %}" class="btn btn-primary">Ir al Checkout</a>
+    <div id="unique-cart-summary" class="cart-summary">
+        <p id="unique-total-price-summary"><strong>Precio Total:</strong> S/{{ total_price|floatformat:2 }}</p>
+        <a id="unique-btn-checkout" href="{% url 'checkout' %}" class="btn btn-primary">Ir al Checkout</a>
     </div>
 
     {% else %}
-    <div id="empty-cart" class="empty-cart">
+    <div id="unique-empty-cart" class="empty-cart">
         <p>Tu carrito está vacío.</p>
-        <a id="btn-view-products" href="{% url 'products_list' %}" class="btn btn-secondary">Ver productos</a>
+        <a id="unique-btn-view-products" href="{% url 'products_list' %}" class="btn btn-secondary">Ver productos</a>
     </div>
     {% endif %}
 </div>

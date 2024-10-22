@@ -137,3 +137,5 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 # Tiempo de vida de las cookies de sesión
 SESSION_COOKIE_AGE = 1209600  # 2 semanas
 
+
+

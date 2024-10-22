@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    {% load static %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirmación de Compra</title>
+    <style>
+       /* email_style.css */
+
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+    color: #333;
+}
+
+.email-container {
+    background-color: #fff;
+    width: 100%;
+    max-width: 600px;
+    margin: 20px auto;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Estilos del logo */
+.logo {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.logo-img {
+    max-width: 150px;
+}
+
+/* Títulos y párrafos */
+h2 {
+    color: #4CAF50;
+}
+
+p {
+    font-size: 16px;
+    line-height: 1.6;
+}
+
+/* Tabla de productos */
+.order-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+}
+
+.order-table th, .order-table td {
+    padding: 10px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.order-table th {
+    background-color: #f9f9f9;
+    font-weight: bold;
+}
+
+.order-table td {
+    font-size: 14px;
+}
+
+/* Total pagado */
+.total {
+    font-size: 18px;
+    font-weight: bold;
+    margin-top: 20px;
+}
+
+/* Footer */
+.footer {
+    margin-top: 20px;
+    font-size: 14px;
+    color: #777;
+    text-align: center;
+}
+
+.footer a {
+    color: #4CAF50;
+    text-decoration: none;
+}
+
+.footer a:hover {
+    text-decoration: underline;
+}
+
+    </style>
+
+</head>
+<body>
+    <div class="email-container">
+        <h2>Gracias por tu compra, {{ user.first_name }} {{ user.last_name }}!</h2>
+        <p>Hemos recibido tu pedido con éxito. Aquí tienes el resumen de tu compra:</p>
+        <!-- Información del pedido -->
+        <div class="order-summary">
+            <p><strong>ID ORDEN:</strong> {{ order.id }}</p>
+
+            <!-- Tabla de productos -->
+            <h3>Productos comprados</h3>
+            <table class="order-table">
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Cantidad</th>
+                        <th>Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in items %}
+                    <tr>
+                        <td>{{ item.product_size.product.name }} (Talla: {{ item.product_size.size.name }})</td>
+                        <td>{{ item.quantity }}</td>
+                        <td>{{ item.price|floatformat:2 }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            <!-- Total pagado -->
+            <p class="total"><strong>Total pagado:</strong> {{ total_price|floatformat:2 }}</p>
+
+            <!-- Dirección de envío -->
+            <p><strong>Dirección de envío:</strong> {{ shipping_address }}</p>
+        </div>
+
+        <p>Esperamos que disfrutes de tu compra. ¡Gracias por confiar en nosotros!</p>
+
+        <div class="footer">
+            <p>&copy; {{ user.first_name }}. Si tienes alguna pregunta, <a href="mailto:soporte@tu-tienda.com">contáctanos</a>.</p>
+        </div>
+    </div>
+</body>
+</html>

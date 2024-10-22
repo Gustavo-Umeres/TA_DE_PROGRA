@@ -15,6 +15,12 @@ from django.core.paginator import Paginator
 from django.db.models import Q
 from django.http import JsonResponse
 
+from django.template.loader import render_to_string
+from django.utils.html import strip_tags
+from django.core.mail import send_mail
+from django.core.mail import EmailMultiAlternatives
+
+
 User = get_user_model()  # Usar el modelo de usuario correcto
 
 # Vista de inicio
@@ -385,23 +391,20 @@ def procesar_pago(request):
     return redirect(preference['init_point'])
 
 
+
 @login_required
 def pago_exito(request):
-    # Verificar que los datos de la sesión existan
     shipping_address = request.session.get('shipping_address')
     total_price = request.session.get('total_price')
-
-    # Imprimir valores de la sesión para depuración
-    print(f"Shipping Address: {shipping_address}, Total Price: {total_price}")
 
     if not shipping_address or not total_price:
         messages.error(request, 'Hubo un problema con el pago. Intenta nuevamente.')
         return redirect('checkout')
 
-    # Crear el pedido
     cart = get_object_or_404(Cart, user=request.user)
     cart_items = cart.items.all()
 
+    # Crear el pedido
     order = Order.objects.create(
         user=request.user,
         shipping_address=shipping_address,
@@ -409,8 +412,16 @@ def pago_exito(request):
         is_paid=True
     )
 
-    # Crear los ítems del pedido basados en el carrito
+    # Crear los ítems del pedido y actualizar el stock
     for item in cart_items:
+        product_size = item.product_size
+
+        # Verificar si hay suficiente stock
+        if product_size.stock < item.quantity:
+            messages.error(request, f'No hay suficiente stock disponible para {product_size.product.name}.')
+            return redirect('checkout')
+
+        # Crear el OrderItem
         OrderItem.objects.create(
             order=order,
             product_size=item.product_size,
@@ -418,11 +429,39 @@ def pago_exito(request):
             price=item.product_size.product.price * item.quantity
         )
 
+        # Actualizar el stock del producto
+        product_size.stock -= item.quantity  # Disminuir el stock
+        product_size.save()  # Guardar los cambios en el stock
+
+    # Obtener los ítems del pedido recién creado
+    order_items = OrderItem.objects.filter(order=order)
+
     # Limpiar el carrito
     cart_items.delete()
 
-    messages.success(request, 'El pago fue exitoso y tu pedido ha sido creado.')
+    # Preparar y enviar el correo electrónico
+    subject = "Confirmación de tu compra"
+    html_message = render_to_string('emails/confirmacion_compra.html', {
+        'user': request.user,
+        'order': order,
+        'items': order_items,  # Asegurarse de pasar los ítems del pedido
+        'total_price': total_price,
+        'shipping_address': shipping_address,
+    })
+    plain_message = strip_tags(html_message)
+
+    email = EmailMultiAlternatives(
+        subject,
+        plain_message,
+        settings.DEFAULT_FROM_EMAIL,
+        [request.user.email]
+    )
+    email.attach_alternative(html_message, "text/html")
+    email.send()
+
+    messages.success(request, 'El pago fue exitoso y tu pedido ha sido creado. Recibirás un resumen por correo.')
     return redirect('home')
+
 
 @login_required
 def pago_fallo(request):
