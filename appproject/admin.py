@@ -1,5 +1,6 @@
 from django.contrib import admin
 from .models import User, Category, Size, Product, ProductSize, Order, OrderItem, Cart, CartItem, Review
+from django.db.models import Sum
 
 # Inline para OrderItem
 class OrderItemInline(admin.TabularInline):
@@ -28,17 +29,14 @@ class SizeAdmin(admin.ModelAdmin):
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('name', 'price', 'stock', 'category', 'created_at')
+    list_display = ('name', 'price', 'total_stock', 'category', 'created_at')
     list_filter = ('category',)
     search_fields = ('name', 'description')
-    actions = ['update_stock']
 
-    def update_stock(self, request, queryset):
-        for product in queryset:
-            product.stock = max(0, product.stock - 10)  # Ejemplo
-            product.save()
-        self.message_user(request, "El stock ha sido actualizado")
-    update_stock.short_description = "Actualizar stock de productos seleccionados"
+    def total_stock(self, obj):
+        # Calcula el stock total sumando el stock de todas las tallas
+        return ProductSize.objects.filter(product=obj).aggregate(total=Sum('stock'))['total'] or 0
+    total_stock.short_description = 'Total Stock'
 
 @admin.register(ProductSize)
 class ProductSizeAdmin(admin.ModelAdmin):

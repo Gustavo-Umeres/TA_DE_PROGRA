@@ -2,29 +2,29 @@ from pathlib import Path
 import os
 from dotenv import load_dotenv
 from django.core.management.utils import get_random_secret_key
+import cloudinary
+import cloudinary_storage
+import pymysql
 
+pymysql.install_as_MySQLdb()
+
+# Configuración de Cloudinary
+CLOUDINARY_STORAGE = {
+    'CLOUD_NAME': os.getenv('CLOUDINARY_CLOUD_NAME'),
+    'API_KEY': os.getenv('CLOUDINARY_API_KEY'),
+    'API_SECRET': os.getenv('CLOUDINARY_API_SECRET')
+}
 load_dotenv()
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
+# Construcción de rutas base
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-STATICFILES_DIRS = [
-    BASE_DIR /'appproject/static',  # Cambia esta línea
-]
-
-
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('SECRET_KEY', get_random_secret_key())
+# Configuración de seguridad
+SECRET_KEY = os.getenv('SECRET_KEY') or get_random_secret_key()
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
-ALLOWED_HOSTS = ['.onrender.com']
+ALLOWED_HOSTS = ['.onrender.com', '127.0.0.1', 'localhost']
 
-# settings.py
-LOGIN_URL = 'login'  # Asegúrate de que sea el nombre correcto
-LOGIN_REDIRECT_URL = 'home'  # Redirigir a la vista de inicio después del login
-LOGOUT_REDIRECT_URL = 'home'  # Redirigir a la vista de inicio después del logout
-
-# Application definition
-
+# Aplicaciones instaladas
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -32,9 +32,12 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    "appproject",  # Agregar la aplicación creada
+    'cloudinary',
+    'cloudinary_storage',
+    'appproject',  # Tu aplicación
 ]
 
+# Middleware
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -43,10 +46,13 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware'
+    'whitenoise.middleware.WhiteNoiseMiddleware',
 ]
+
+# Configuración de URL
 ROOT_URLCONF = 'taproject.urls'
 
+# Configuración de plantillas
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
@@ -65,21 +71,19 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'taproject.wsgi.application'
 
-
-# Database
-# https://docs.djangoproject.com/en/5.1/ref/settings/#databases
-
+# Configuración de base de datos
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'ta_de_progra',
+        'USER': 'root',
+        'PASSWORD': '',
+        'HOST': 'localhost',
+        'PORT': '3306',
     }
 }
 
-
-# Password validation
-# https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
-
+# Validación de contraseñas
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -95,47 +99,44 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
-# Internationalization
-# https://docs.djangoproject.com/en/5.1/topics/i18n/
-
+# Configuración de idioma y zona horaria
 LANGUAGE_CODE = 'es-es'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_TZ = True
 
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/5.1/howto/static-files/
-
+# Archivos estáticos y de medios
 STATIC_URL = '/static/'
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+STATICFILES_DIRS = [BASE_DIR / 'appproject/static']
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+# Configuración para Cloudinary como almacenamiento de archivos
+DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 
-# Asegúrate de que estás utilizando el modelo de usuario correcto
-AUTH_USER_MODEL = 'appproject.User'  # Reemplaza 'appproject' por el nombre de tu aplicación
+# Configuración de autenticación personalizada
+AUTH_USER_MODEL = 'appproject.User'
 
-MERCADOPAGO_PUBLIC_KEY = os.getenv('MERCADOPAGO_PUBLIC_KEY')
-MERCADOPAGO_ACCESS_TOKEN = os.getenv('MERCADOPAGO_ACCESS_TOKEN')
-# Asegúrate de que las sesiones se manejen en la base de datos
+# Configuración de inicio y cierre de sesión
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'home'
+LOGOUT_REDIRECT_URL = 'home'
+
+# Configuración de sesiones
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
-
-# Tiempo de vida de las cookies de sesión
 SESSION_COOKIE_AGE = 1209600  # 2 semanas
-
 
 # Configuración de correo electrónico
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')  # Tu dirección de correo de Gmail
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')  # Tu contraseña de Gmail
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')  # Dirección de correo de Gmail
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')  # Contraseña de Gmail
 
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+# Llaves de Mercadopago
+MERCADOPAGO_PUBLIC_KEY = os.getenv('MERCADOPAGO_PUBLIC_KEY')
+MERCADOPAGO_ACCESS_TOKEN = os.getenv('MERCADOPAGO_ACCESS_TOKEN')
+
+# Campo de modelo predeterminado
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

@@ -41,8 +41,9 @@ urlpatterns = [
     # Administración de productos (solo para administradores)
     path('add_product_to_cart/', views.add_product_to_cart, name='add_product_to_cart'),  # Agregar producto al carrito
     path('edit_product/<int:product_id>/', views.edit_product, name='edit_product'),  # Editar un producto
-]+ static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+]
 
-# Manejo de archivos estáticos y medios en modo de desarrollo
+# Manejo de archivos estáticos y de media en modo de desarrollo
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
