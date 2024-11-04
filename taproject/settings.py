@@ -136,3 +136,4 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')  # Tu dirección de correo de Gmail
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')  # Tu contraseña de Gmail
 
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
