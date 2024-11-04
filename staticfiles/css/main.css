@@ -1,0 +1,78 @@
+/* Importar los estilos según las plantillas específicas */
+@import url('about.css');
+@import url('cart.css');
+@import url('checkout.css');
+@import url('home.css');
+@import url('pago_exito.css');
+@import url('pago_fallo.css');
+@import url('pago_pendiente.css');
+@import url('product_detail.css');
+@import url('products_list.css');
+@import url('profile.css');
+@import url('login.css');
+@import url('register.css');
+@import url('base.css');  /* Este es para los estilos generales */
+
+/* Ajustes generales adicionales */
+body {
+    font-family: 'Nunito', sans-serif;
+    background-color: #1e1e1e;  /* Fondo oscuro coherente con la temática */
+    color: #e0e0e0;  /* Texto claro */
+    margin: 0;
+    padding: 0;
+    line-height: 1.6;  /* Mejora la legibilidad del texto */
+}
+
+/* Puedes agregar otros estilos globales aquí, si es necesario */
+
+/* Estilos adicionales globales para botones o enlaces */
+a {
+    color: #88c0d0; /* Color global para los enlaces */
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+a:hover {
+    color: #5e8391;  /* Color al pasar el mouse */
+}
+
+/* Estilos globales para botones */
+.btn {
+    display: inline-block;
+    padding: 12px 20px;
+    background-color: #88c0d0;
+    color: #1c1c1c;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.btn:hover {
+    background-color: #5e8391;
+    transform: translateY(-2px);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+/* Estilo del logo global */
+.logo {
+    width: 100px;
+    height: auto;
+    display: block;
+    margin: 0 auto;
+    box-shadow: none;
+    transform: none;
+    transition: none; /* Sin transiciones ni efectos */
+}
+
+/* Footer global */
+footer {
+    background-color: #2c2c2c;
+    color: #e0e0e0;
+    text-align: center;
+    padding: 20px;
+    font-size: 14px;
+}

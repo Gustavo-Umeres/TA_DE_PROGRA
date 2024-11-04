@@ -1,0 +1,341 @@
+/* Vista de productos */
+.products {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);  /* Mostramos 4 productos por fila */
+    gap: 20px;
+    padding: 20px;
+}
+
+.product {
+    background-color: #1c1c1c;  /* Fondo oscuro para mantener la coherencia de la temática dark */
+    padding: 15px;
+    border: none;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);  /* Sombra ligeramente más fuerte */
+    transition: transform 0.3s ease, box-shadow 0.3s ease, filter 0.3s ease;
+    text-align: center;
+    color: #f5f5f5;  /* Texto claro */
+    overflow: hidden;  /* Evitamos que elementos se salgan de la tarjeta */
+    cursor: pointer;
+}
+
+.product:hover {
+    transform: translateY(-10px) scale(1.05); /* Efecto de elevación y aumento */
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);  /* Sombra más notable */
+    filter: brightness(1.2);  /* Efecto de brillo al pasar el mouse */
+}
+
+.product img {
+    max-width: 100%;
+    border-radius: 8px;
+    transition: transform 0.3s ease;
+}
+
+.product img:hover {
+    transform: scale(1.1) rotate(2deg);  /* Ligera rotación y aumento de la imagen al pasar el mouse */
+}
+
+.product h3 {
+    color: #88c0d0;  /* Un toque de color para los títulos */
+    font-size: 1.4rem;
+    margin: 10px 0;
+}
+
+.product p {
+    color: #b0b0b0;  /* Texto secundario más claro */
+    font-size: 1rem;
+    margin: 10px 0;
+}
+
+/* Detalles del producto */
+.product-detail-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #1c1c1c;
+    color: #f5f5f5;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.product-detail-container h1 {
+    font-size: 2rem;
+    text-align: center;
+    margin-bottom: 20px;
+    letter-spacing: 1px;
+    color: #ffffff;
+    text-transform: uppercase;
+    font-weight: 700;
+}
+
+.product-image img {
+    display: block;
+    max-width: 100%;
+    border-radius: 8px;
+    margin: 0 auto;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.product-description p {
+    font-size: 1rem;
+    line-height: 1.6;
+    margin-bottom: 10px;
+}
+
+.product-description strong {
+    color: #88c0d0;
+}
+
+/* Sección de tallas */
+.product-sizes h3 {
+    font-size: 1.2rem;
+    margin-bottom: 10px;
+    color: #f5f5f5;
+}
+
+.product-sizes label {
+    font-size: 1rem;
+    margin-bottom: 5px;
+    color: #f5f5f5;
+}
+
+.product-sizes select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 6px;
+    background-color: #2b2b2b;
+    color: #ffffff;
+    border: 1px solid #555;
+    transition: border-color 0.3s ease;
+}
+
+.product-sizes select:focus {
+    border-color: #88c0d0;
+    outline: none;
+}
+
+/* Sección de cantidad y botón agregar al carrito */
+.add-to-cart label {
+    margin-right: 10px;
+    font-size: 1rem;
+}
+
+.add-to-cart input {
+    width: 60px;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #555;
+    background-color: #2b2b2b;
+    color: #ffffff;
+}
+
+.btn-add-cart {
+    background-color: #88c0d0;
+    color: #1c1c1c;
+    padding: 12px 20px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    margin-top: 10px;
+}
+
+.btn-add-cart:hover {
+    background-color: #5e8391;
+    transform: translateY(-2px);
+}
+
+.btn-add-cart:active {
+    transform: translateY(0);
+}
+
+/* Sección de reseñas */
+.reviews-section h2 {
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+    color: #ffffff;
+    text-align: center;
+}
+
+.review-item {
+    background-color: #2c2c2c;
+    padding: 10px;
+    border-radius: 6px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+}
+
+.review-item p {
+    margin: 5px 0;
+}
+
+.review-item strong {
+    color: #88c0d0;
+}
+
+/* Formulario de agregar reseña */
+.add-review-section h2 {
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+    color: #ffffff;
+}
+
+.add-review-section .form-group {
+    margin-bottom: 15px;
+}
+
+.add-review-section label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 1rem;
+    color: #f5f5f5;
+}
+
+.add-review-section input, .add-review-section textarea {
+    width: 100%;
+    padding: 10px;
+    border-radius: 6px;
+    border: 1px solid #555;
+    background-color: #2b2b2b;
+    color: #ffffff;
+}
+
+.add-review-section textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.btn-submit-review {
+    background-color: #88c0d0;
+    color: #1c1c1c;
+    padding: 12px 20px;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.btn-submit-review:hover {
+    background-color: #5e8391;
+    transform: translateY(-2px);
+}
+
+.btn-submit-review:active {
+    transform: translateY(0);
+}
+
+/* Enlace para iniciar sesión */
+a {
+    color: #88c0d0;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+a:hover {
+    color: #5e8391;
+}
+
+/* Estilo para el buscador */
+#search-input {
+    width: 100%;  /* Abarca todo el ancho disponible */
+    padding: 10px;  /* Espacio interno para comodidad al escribir */
+    margin-bottom: 20px;  /* Separación del resto del contenido */
+    font-size: 16px;  /* Tamaño de texto legible */
+    border: 1px solid #444444;  /* Borde tenue acorde a la temática dark */
+    border-radius: 5px;  /* Bordes redondeados */
+    background-color: #2c2c2c;  /* Fondo oscuro */
+    color: #e0e0e0;  /* Texto claro */
+    transition: border-color 0.3s ease;  /* Suave transición para el borde */
+}
+
+/* Efecto al hacer foco (focus) */
+#search-input:focus {
+    outline: none;  /* Eliminamos el contorno predeterminado */
+    border-color: #88c0d0;  /* Color de borde en foco (un tono de azul suave) */
+}
+
+/* Estilo para el botón de búsqueda (opcional, si usas un botón) */
+button[type="submit"] {
+    padding: 10px 20px;
+    background-color: #88c0d0;  /* Color azul suave */
+    color: #1e1e1e;  /* Texto oscuro para contraste */
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+button[type="submit"]:hover {
+    background-color: #5e8391;  /* Oscurecemos el botón en hover */
+    transform: translateY(-2px);  /* Efecto de elevación */
+}
+
+button[type="submit"]:active {
+    transform: translateY(0);  /* Sin elevación al hacer clic */
+}
+
+
+/* Contenedor de los filtros de categorías */
+.category-filters {
+    margin-bottom: 20px;
+    padding: 20px;
+    background-color: #1c1c1c; /* Fondo oscuro */
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2); /* Sombra sutil */
+    color: #f5f5f5; /* Texto claro */
+}
+
+/* Título de las categorías */
+.category-filters h3 {
+    font-size: 1.4rem;
+    margin-bottom: 15px;
+    color: #88c0d0; /* Color suave para el título */
+    text-align: center;
+    text-transform: uppercase; /* Texto en mayúsculas */
+    letter-spacing: 1px; /* Espaciado entre letras */
+}
+
+/* Lista de categorías */
+.category-filters ul {
+    list-style-type: none; /* Eliminamos los puntos de la lista */
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center; /* Centrar los elementos */
+}
+
+/* Elemento individual de la categoría */
+.category-filters ul li {
+    margin: 5px 10px; /* Espaciado entre elementos */
+}
+
+/* Enlaces de categorías */
+.category-filters ul li a {
+    color: #f5f5f5; /* Color del texto del enlace */
+    background-color: #2b2b2b; /* Fondo oscuro del enlace */
+    padding: 10px 20px;
+    border-radius: 5px;
+    text-decoration: none; /* Sin subrayado */
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    display: block; /* Hace que todo el área sea clickeable */
+    font-size: 1rem;
+    text-align: center;
+}
+
+/* Estilo al pasar el mouse sobre la categoría */
+.category-filters ul li a:hover {
+    background-color: #88c0d0; /* Cambia el fondo a un azul suave */
+    color: #1e1e1e; /* Texto más oscuro para contraste */
+    transform: translateY(-3px); /* Efecto de elevación */
+}
+
+/* Estilo para la categoría seleccionada */
+.category-filters ul li a.active {
+    background-color: #88c0d0; /* Color diferente para indicar la selección */
+    color: #1c1c1c; /* Texto más oscuro */
+    font-weight: bold;
+}
+

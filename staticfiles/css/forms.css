@@ -1,0 +1,108 @@
+/* Formularios */
+form {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #1c1c1c;  /* Fondo oscuro para un look moderno */
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.25);  /* Sombra más difusa */
+}
+
+/* Título del formulario */
+#titulo-registro {
+    color: #f5f5f5;  /* Color claro */
+    font-size: 2rem;
+    margin-bottom: 25px;
+    text-align: center;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+/* Estilo para el título del formulario de iniciar sesión */
+#titulo-iniciar-sesion {
+    color: #f5f5f5;  /* Color claro */
+    font-size: 2rem;
+    margin-bottom: 25px;
+    text-align: center;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+/* Etiquetas */
+form label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #f5f5f5;  /* Texto claro */
+    letter-spacing: 0.5px;
+}
+
+/* Inputs */
+form input, form select, form textarea {
+    width: 95%;  /* Ajuste de ancho a un tamaño moderado */
+    padding: 12px;
+    margin-bottom: 15px;
+    background-color: #2b2b2b;  /* Fondo oscuro para inputs */
+    border: 1px solid #444;  /* Bordes oscuros */
+    border-radius: 6px;
+    font-size: 1rem;
+    color: #f5f5f5;  /* Texto claro */
+    transition: all 0.3s ease;
+    margin-left: auto;  /* Margen automático para centrar */
+    margin-right: auto;
+}
+
+/* Estilo de los inputs al hacer foco */
+form input:focus, form select:focus, form textarea:focus {
+    outline: none;
+    border-color: #88c0d0;
+    box-shadow: 0 0 6px rgba(136, 192, 208, 0.5);
+}
+
+/* Botones */
+.form-button {
+    background-color: #88c0d0;  /* Botón claro */
+    color: #1c1c1c;
+    padding: 14px 24px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    text-align: center;
+}
+
+.form-button:hover {
+    background-color: #5e8391;
+    transform: translateY(-2px);
+}
+
+.form-button:active {
+    transform: translateY(0);
+}
+
+/* Mensajes de error */
+.error-message {
+    color: #e57373;
+    margin-bottom: 12px;
+    font-size: 0.9rem;
+    font-style: italic;
+}
+
+/* Ajuste de inputs en pantallas pequeñas */
+@media (max-width: 480px) {
+    form {
+        padding: 15px;
+    }
+    
+    form input, form select, form textarea {
+        padding: 12px;
+        width: 100%;  /* Ajustar el ancho a pantallas pequeñas */
+    }
+
+    .form-button {
+        padding: 12px 18px;
+    }
+}
