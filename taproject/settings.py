@@ -4,9 +4,6 @@ from dotenv import load_dotenv
 from django.core.management.utils import get_random_secret_key
 import cloudinary
 import cloudinary_storage
-import pymysql
-
-pymysql.install_as_MySQLdb()
 
 # Configuración de Cloudinary
 CLOUDINARY_STORAGE = {
