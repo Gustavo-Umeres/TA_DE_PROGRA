@@ -1,9 +1,13 @@
 {% extends 'base.html' %}
 
 {% block content %}
-    <h1 id="titulo-pago-fallido">Pago Fallido</h1>
-    <p id="mensaje-pago-fallido">Hubo un problema al procesar tu pago. Por favor, intenta nuevamente o revisa los detalles de tu método de pago.</p>
+    <div class="max-w-md mx-auto bg-white p-6 rounded-lg shadow-md text-center mt-12">
+        <h1 id="titulo-pago-fallido" class="text-2xl font-semibold text-red-600 mb-4">Pago Fallido</h1>
+        <p id="mensaje-pago-fallido" class="text-gray-700 mb-6">Hubo un problema al procesar tu pago. Por favor, intenta nuevamente o revisa los detalles de tu método de pago.</p>
 
-    <a id="btn-intentar-nuevo-pago" href="{% url 'checkout' %}" class="btn">Intentar de nuevo</a>
-    <a id="btn-volver-productos" href="{% url 'products_list' %}" class="btn">Volver a los productos</a>
+        <div class="flex justify-center space-x-4">
+            <a id="btn-intentar-nuevo-pago" href="{% url 'checkout' %}" class="bg-red-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">Intentar de nuevo</a>
+            <a id="btn-volver-productos" href="{% url 'products_list' %}" class="bg-blue-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">Volver a los productos</a>
+        </div>
+    </div>
 {% endblock %}

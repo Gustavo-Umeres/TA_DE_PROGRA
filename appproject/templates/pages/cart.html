@@ -1,66 +1,68 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div id="unique-cart-container" class="cart-container">
-    <h1 id="unique-titulo-carrito">Tu Carrito</h1>
+<div class="flex flex-col min-h-screen"> <!-- Flexbox para mantener el footer en el fondo -->
+    <div id="unique-cart-container" class="max-w-5xl mx-auto bg-white p-6 rounded-lg shadow-md mt-32 mb-24"> <!-- Ajuste de margen superior e inferior -->
+        <h1 id="unique-titulo-carrito" class="text-2xl font-semibold text-center mb-6 text-gray-800">Tu Carrito</h1>
 
-    {% if cart_items %}
-    <form id="unique-form-update-cart" action="{% url 'update_cart' %}" method="post"> <!-- Enviar cambios en cantidades -->
-        {% csrf_token %}
-        <table id="unique-cart-table" class="cart-table">
-            <thead>
-                <tr>
-                    <th>Imagen</th>
-                    <th>Producto</th>
-                    <th>Talla</th>
-                    <th>Cantidad</th>
-                    <th>Precio Unitario</th>
-                    <th>Total por Producto</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for item in cart_items %}
-                <tr id="unique-cart-item-{{ item.id }}">
-                    <td class="product-image">
-                        <img src="{{ item.product_size.product.image.url }}" alt="{{ item.product_size.product.name }}" width="100" height="100">
-                    </td>
-                    <td class="product-name">{{ item.product_size.product.name }}</td>
-                    <td>
-                        {% if item.product_size.size.name != "NONE" %}
-                            {{ item.product_size.size.name }}
-                        {% else %}
-                            -
-                        {% endif %}
-                    </td>
-                    <td class="quantity-input">
-                        <div class="input-group">
-                            <button type="submit" name="action" value="decrease_{{ item.id }}" class="btn-quantity" id="unique-btn-decrease-{{ item.id }}">-</button>
-                            <input type="number" id="unique-quantity-{{ item.id }}" name="quantity_{{ item.id }}" value="{{ item.quantity }}" min="1" readonly>
-                            <button type="submit" name="action" value="increase_{{ item.id }}" class="btn-quantity" id="unique-btn-increase-{{ item.id }}">+</button>
-                        </div>
-                    </td>
-                    <td id="unique-unit-price-{{ item.id }}">S/{{ item.product_size.product.price|floatformat:2 }}</td>
-                    <td id="unique-total-price-{{ item.id }}">S/{{ item.total_price|floatformat:2 }}</td>
-                    <td>
-                        <button id="unique-btn-remove-{{ item.id }}" type="submit" name="action" value="remove_{{ item.id }}" class="btn btn-danger">Quitar</button>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </form>
+        {% if cart_items %}
+        <form id="unique-form-update-cart" action="{% url 'update_cart' %}" method="post">
+            {% csrf_token %}
+            <table id="unique-cart-table" class="w-full border-collapse">
+                <thead>
+                    <tr class="bg-gray-100 text-gray-700 text-left">
+                        <th class="p-3 border-b">Imagen</th>
+                        <th class="p-3 border-b">Producto</th>
+                        <th class="p-3 border-b">Talla</th>
+                        <th class="p-3 border-b">Cantidad</th>
+                        <th class="p-3 border-b">Precio Unitario</th>
+                        <th class="p-3 border-b">Total por Producto</th>
+                        <th class="p-3 border-b">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in cart_items %}
+                    <tr id="unique-cart-item-{{ item.id }}" class="text-center border-b">
+                        <td class="p-3">
+                            <img src="{{ item.product_size.product.image.url }}" alt="{{ item.product_size.product.name }}" class="w-20 h-20 object-cover rounded">
+                        </td>
+                        <td class="p-3 text-gray-800 font-medium">{{ item.product_size.product.name }}</td>
+                        <td class="p-3 text-gray-600">
+                            {% if item.product_size.size.name != "NONE" %}
+                                {{ item.product_size.size.name }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        <td class="p-3">
+                            <div class="flex items-center justify-center space-x-2">
+                                <button type="submit" name="action" value="decrease_{{ item.id }}" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">-</button>
+                                <input type="number" id="unique-quantity-{{ item.id }}" name="quantity_{{ item.id }}" value="{{ item.quantity }}" min="1" class="w-12 text-center bg-gray-50 border border-gray-200 rounded" readonly>
+                                <button type="submit" name="action" value="increase_{{ item.id }}" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">+</button>
+                            </div>
+                        </td>
+                        <td class="p-3 text-gray-800">S/{{ item.unit_price|floatformat:2 }}</td>
+                        <td class="p-3 text-gray-800">S/{{ item.total_price|floatformat:2 }}</td>
+                        <td class="p-3">
+                            <button id="unique-btn-remove-{{ item.id }}" type="submit" name="action" value="remove_{{ item.id }}" class="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700">Quitar</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </form>
 
-    <div id="unique-cart-summary" class="cart-summary">
-        <p id="unique-total-price-summary"><strong>Precio Total:</strong> S/{{ total_price|floatformat:2 }}</p>
-        <a id="unique-btn-checkout" href="{% url 'checkout' %}" class="btn btn-primary">Ir al Checkout</a>
+        <div id="unique-cart-summary" class="flex justify-between items-center mt-6 p-4 bg-gray-100 rounded-lg">
+            <p id="unique-total-price-summary" class="text-lg font-semibold text-gray-800">Precio Total: S/{{ total_price|floatformat:2 }}</p>
+            <a id="unique-btn-checkout" href="{% url 'checkout' %}" class="bg-blue-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">Ir al Checkout</a>
+        </div>
+
+        {% else %}
+        <div id="unique-empty-cart" class="text-center p-6 bg-gray-100 rounded-lg">
+            <p class="text-gray-700 mb-4">Tu carrito está vacío.</p>
+            <a id="unique-btn-view-products" href="{% url 'products_list' %}" class="bg-blue-600 text-white py-2 px-4 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">Ver productos</a>
+        </div>
+        {% endif %}
     </div>
-
-    {% else %}
-    <div id="unique-empty-cart" class="empty-cart">
-        <p>Tu carrito está vacío.</p>
-        <a id="unique-btn-view-products" href="{% url 'products_list' %}" class="btn btn-secondary">Ver productos</a>
-    </div>
-    {% endif %}
 </div>
 {% endblock %}

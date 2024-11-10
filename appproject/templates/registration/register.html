@@ -1,49 +1,55 @@
 {% extends 'base.html' %}
+{% load custom_filters %}
 
 {% block content %}
-<h1 id="titulo-registro">Registro</h1>
-<form id="form-registro" method="post">
-    {% csrf_token %}
-    
-    <!-- Nombre de Usuario -->
-    <div class="form-row">
-        <label for="id_username" id="label-username">Nombre de Usuario:</label>
-        {{ form.username }}
+<div class="flex flex-col min-h-screen"> <!-- Flexbox para mantener el footer en el fondo -->
+    <div class="flex-grow mt-32 mb-10"> <!-- Aumento del margen superior para mover el formulario hacia abajo -->
+        <h1 id="titulo-registro" class="text-2xl font-semibold text-center my-6 text-gray-800">Registro</h1>
+        
+        <form id="form-registro" method="post" class="max-w-md mx-auto bg-white p-6 rounded-lg shadow-md">
+            {% csrf_token %}
+            
+            <!-- Nombre de Usuario -->
+            <div class="form-row mb-4">
+                <label for="id_username" id="label-username" class="block text-gray-700 font-medium mb-2">Nombre de Usuario:</label>
+                {{ form.username|add_class:"w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+            </div>
+
+            <!-- Nombre -->
+            <div class="form-row mb-4">
+                <label for="id_first_name" id="label-firstname" class="block text-gray-700 font-medium mb-2">Nombre:</label>
+                {{ form.first_name|add_class:"w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+            </div>
+
+            <!-- Apellido -->
+            <div class="form-row mb-4">
+                <label for="id_last_name" id="label-lastname" class="block text-gray-700 font-medium mb-2">Apellido:</label>
+                {{ form.last_name|add_class:"w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+            </div>
+
+            <!-- Correo Electrónico -->
+            <div class="form-row mb-4">
+                <label for="id_email" id="label-email" class="block text-gray-700 font-medium mb-2">Correo Electrónico:</label>
+                {{ form.email|add_class:"w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+            </div>
+
+            <!-- Contraseña -->
+            <div class="form-row mb-4">
+                <label for="id_password1" id="label-password1" class="block text-gray-700 font-medium mb-2">Contraseña:</label>
+                {{ form.password1|add_class:"w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+            </div>
+
+            <!-- Confirmar Contraseña -->
+            <div class="form-row mb-4">
+                <label for="id_password2" id="label-password2" class="block text-gray-700 font-medium mb-2">Confirmar Contraseña:</label>
+                {{ form.password2|add_class:"w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+            </div>
+
+            <!-- Botón de registrar -->
+            <button id="btn-registrar" type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">Registrar</button>
+        </form>
+
+        <p id="tienes-cuenta" class="text-center text-gray-600 mt-4">¿Ya tienes una cuenta? <a id="link-iniciar-sesion" href="{% url 'login' %}" class="text-blue-500 hover:underline">Inicia sesión aquí</a>.</p>
     </div>
-
-    <!-- Nombre -->
-    <div class="form-row">
-        <label for="id_first_name" id="label-firstname">Nombre:</label>
-        {{ form.first_name }}
-    </div>
-
-    <!-- Apellido -->
-    <div class="form-row">
-        <label for="id_last_name" id="label-lastname">Apellido:</label>
-        {{ form.last_name }}
-    </div>
-
-    <!-- Correo Electrónico -->
-    <div class="form-row">
-        <label for="id_email" id="label-email">Correo Electrónico:</label>
-        {{ form.email }}
-    </div>
-
-    <!-- Contraseña -->
-    <div class="form-row">
-        <label for="id_password1" id="label-password1">Contraseña:</label>
-        {{ form.password1 }}
-    </div>
-
-    <!-- Confirmar Contraseña -->
-    <div class="form-row">
-        <label for="id_password2" id="label-password2">Confirmar Contraseña:</label>
-        {{ form.password2 }}
-    </div>
-
-    <!-- Botón de registrar -->
-    <button id="btn-registrar" type="submit" class="btn">Registrar</button>
-</form>
-
-<p id="tienes-cuenta">¿Ya tienes una cuenta? <a id="link-iniciar-sesion" href="{% url 'login' %}">Inicia sesión aquí</a>.</p>
+</div>
 {% endblock %}

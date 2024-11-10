@@ -1,24 +1,31 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h1 id="titulo-iniciar-sesion">Iniciar Sesión</h1>
+<div class="flex flex-col items-center min-h-screen"> <!-- Estructura Flexbox para el contenedor principal -->
+    <div class="flex-grow mt-32 mb-20 w-full"> <!-- Ajuste de márgenes superiores e inferiores -->
+        <h1 id="titulo-iniciar-sesion" class="text-2xl font-semibold text-center my-6 text-gray-800">Iniciar Sesión</h1>
 
-<form id="form-iniciar-sesion" method="POST">
-    {% csrf_token %}
-    
-    <!-- Nombre de usuario -->
-    <div class="form-row">
-        <label for="username" id="label-username">Nombre de usuario:</label>
-        <input type="text" id="input-username" name="username" required>
+        <form id="form-iniciar-sesion" method="POST" class="max-w-md mx-auto bg-white p-6 rounded-lg shadow-md">
+            {% csrf_token %}
+
+            <!-- Nombre de usuario -->
+            <div class="form-row mb-4">
+                <label for="username" id="label-username" class="block text-gray-700 font-medium mb-2">Nombre de usuario:</label>
+                <input type="text" id="input-username" name="username" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+
+            <!-- Contraseña -->
+            <div class="form-row mb-4">
+                <label for="password" id="label-password" class="block text-gray-700 font-medium mb-2">Contraseña:</label>
+                <input type="password" id="input-password" name="password" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+            </div>
+
+            <!-- Botón de iniciar sesión -->
+            <button id="btn-iniciar-sesion" type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">Iniciar Sesión</button>
+
+            <!-- Mensaje de registro -->
+            <p class="register-message text-center text-gray-600 mt-4">¿Aún no tienes una cuenta? <a href="{% url 'register' %}" class="text-blue-500 hover:underline">Regístrate</a></p>
+        </form>
     </div>
-
-    <!-- Contraseña -->
-    <div class="form-row">
-        <label for="password" id="label-password">Contraseña:</label>
-        <input type="password" id="input-password" name="password" required>
-    </div>
-
-    <!-- Botón de iniciar sesión -->
-    <button id="btn-iniciar-sesion" type="submit" class="btn">Iniciar Sesión</button>
-</form>
+</div>
 {% endblock %}

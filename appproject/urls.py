@@ -5,9 +5,11 @@ from django.conf.urls.static import static
 
 # Vistas principales
 urlpatterns = [
+    
     # Página de inicio y sobre nosotros
     path('', views.home, name='home'),  # Página de inicio
     path('about/', views.about, name='about'),  # Página 'Sobre Nosotros'
+    path('search/', views.search_products, name='search_products'),
 
     # Gestión de productos
     path('products/', views.products_list, name='products_list'),  # Listado de productos
@@ -20,11 +22,11 @@ urlpatterns = [
     # Carrito de compras
     path('add_to_cart/<int:product_id>/', views.add_to_cart, name='add_to_cart'),  # Añadir producto al carrito
     path('cart/', views.view_cart, name='view_cart'),  # Vista del carrito
-    path('cart/update/', views.update_cart, name='update_cart'),  # Actualizar carrito (añadir, eliminar, etc.)
-    
+    path('cart/update/', views.update_cart, name='update_cart'),  # Actualizar carrito
+
     # Proceso de compra
     path('checkout/', views.checkout_view, name='checkout'),  # Vista del proceso de checkout
-    path('procesar_pago/', views.procesar_pago, name='procesar_pago'),  # Procesar pago con Mercado Pago
+    path('procesar_pago/', views.procesar_pago, name='procesar_pago'),  # Procesar pago
     path('pagos/exito/', views.pago_exito, name='pago_exito'),  # Vista de éxito de pago
     path('pagos/fallo/', views.pago_fallo, name='pago_fallo'),  # Vista de fallo de pago
     path('pagos/pendiente/', views.pago_pendiente, name='pago_pendiente'),  # Vista de pago pendiente
@@ -34,7 +36,7 @@ urlpatterns = [
     path('login/', views.login_view, name='login'),  # Inicio de sesión
     path('logout/', views.logout_view, name='logout'),  # Cierre de sesión
     path('profile/', views.profile_view, name='profile'),  # Vista de perfil de usuario
-    
+
     # Reseñas de productos
     path('add_review/<int:product_id>/', views.add_review, name='add_review'),  # Añadir una reseña de producto
 
@@ -43,7 +45,7 @@ urlpatterns = [
     path('edit_product/<int:product_id>/', views.edit_product, name='edit_product'),  # Editar un producto
 ]
 
-# Manejo de archivos estáticos y de media en modo de desarrollo
+# Archivos estáticos y media en modo de desarrollo
 if settings.DEBUG:
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)

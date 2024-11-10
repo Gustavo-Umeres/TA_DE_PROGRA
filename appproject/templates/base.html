@@ -1,83 +1,216 @@
 <!DOCTYPE html>
 <html lang="es">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     {% load static %}
-    <link rel="stylesheet" href="{% static 'css/main.css' %}?v=1.0">
-    
     <title>GOTTA - Ecommerce de Ropa</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+      /* Header transparente y fijo con fondo semitransparente */
+      #header {
+        position: fixed;
+        width: 100%;
+        top: 0;
+        left: 0;
+        z-index: 50;
+        background-color: rgba(255, 255, 255, 0.1); /* Fondo semitransparente */
+        backdrop-filter: blur(2px); /* Efecto de desenfoque */
+        transition: background-color 0.3s, box-shadow 0.2s;
+      }
 
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
+      /* Cambiar el fondo del header al hacer scroll */
+      .scrolled-header {
+        background-color: rgba(255, 255, 255, 0.9);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
 
-<body>
+      /* Ajustes generales para maximizar el ancho y quitar el padding top */
+      body {
+        padding-top: 0;
+        margin: 0;
+        overflow-x: hidden; /* Evita el desplazamiento horizontal */
+      }
 
+      /* Asegura que la pestaña de búsqueda esté al frente */
+      #search-modal {
+        z-index: 1000;
+      }
+
+      /* Asegura que el contenedor principal ocupe todo el ancho */
+      #main-content {
+        width: 100vw;
+        overflow-x: hidden;
+      }
+    </style>
+  </head>
+
+  <body class="bg-gray-100 text-gray-800 font-sans">
     <header id="header">
-        <nav id="navbar">
-            <ul id="nav-list">
-                <li id="logo-item">
-                    <img id="logo" src="{% static 'images/goto gotta.png' %}" alt="GOTTA Logo" class="logo">
-                </li>
-                <li id="nav-home"><a href="{% url 'home' %}">Inicio</a></li>
-                <li id="nav-products"><a href="{% url 'products_list' %}">Productos</a></li>
-                <li id="nav-about"><a href="{% url 'about' %}">Nosotros</a></li>
-                <li id="nav-cart"><a href="{% url 'view_cart' %}">Carrito
-                        {% with cart_items_count=request.user.cart.items.count %}
-                        {% if cart_items_count > 0 %}
-                        <span id="cart-count" class="cart-count">{{ cart_items_count }}</span>
-                        {% endif %}
-                        {% endwith %}
-                    </a></li>
-                {% if user.is_authenticated %}
-                <li id="nav-logout"><a href="{% url 'logout' %}">Cerrar Sesión</a></li>
-                <li id="nav-profile"><a href="{% url 'profile' %}">Mi Perfil</a></li>
-                {% else %}
-                <li id="nav-login"><a href="{% url 'login' %}">Iniciar Sesión</a></li>
-                <li id="nav-register"><a href="{% url 'register' %}">Registrarse</a></li>
-                {% endif %}
-            </ul>
-        </nav>
+      <nav id="navbar" class="w-full flex items-center justify-between p-4 max-w-screen-xl mx-auto">
+        <!-- Logo principal alineado a la izquierda -->
+        <div id="logo-item" class="flex-shrink-0">
+          <img id="logo" src="{% static 'images/goto gotta.png' %}" alt="GOTTA Logo" class="w-24 h-auto" />
+        </div>
+
+        <!-- Links de navegación centrados -->
+        <ul id="nav-list" class="flex-1 flex justify-center space-x-6 text-center">
+          <li id="nav-home"><a href="{% url 'home' %}" class="hover:text-gray-500">Inicio</a></li>
+          <li id="nav-products"><a href="{% url 'products_list' %}" class="hover:text-gray-500">Productos</a></li>
+          <li id="nav-about"><a href="{% url 'about' %}" class="hover:text-gray-500">Nosotros</a></li>
+        </ul>
+
+        <!-- Botones de iconos alineados a la derecha -->
+        <div class="flex items-center space-x-4">
+          <button id="search-button">
+            <img src="{% static 'images/logo_busqueda.png' %}" alt="Buscar" class="w-6 h-6" />
+          </button>
+          <a href="{% url 'view_cart' %}" id="nav-cart" class="relative">
+            <img src="{% static 'images/logo_carrito_compra.png' %}" alt="Carrito" class="w-6 h-6" />
+            {% with cart_items_count=request.user.cart.items.count %}
+              {% if cart_items_count > 0 %}
+                <span id="cart-count" class="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">{{ cart_items_count }}</span>
+              {% endif %}
+            {% endwith %}
+          </a>
+          {% if user.is_authenticated %}
+          <a href="{% url 'profile' %}" id="nav-profile">
+            <img src="{% static 'images/logo_usuario.png' %}" alt="Mi Perfil" class="w-6 h-6" />
+          </a>
+          <a href="{% url 'logout' %}" id="nav-logout" class="hover:text-gray-500">Cerrar Sesión</a>
+          {% else %}
+          <a href="{% url 'login' %}" id="nav-login">
+            <img src="{% static 'images/logo_usuario.png' %}" alt="Iniciar Sesión" class="w-6 h-6" />
+          </a>
+          {% endif %}
+        </div>
+      </nav>
     </header>
 
-    <!-- Bloque de mensajes tipo toast -->
-    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1100;">
-        {% if messages %}
-        {% for message in messages %}
-        <div class="toast align-items-center text-white bg-{{ message.tags }} border-0" role="alert" aria-live="assertive" aria-atomic="true" data-bs-autohide="true" data-bs-delay="3000">
-            <div class="d-flex">
-                <div class="toast-body">
-                    {{ message }}
-                </div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-            </div>
+    <!-- Pestaña flotante de búsqueda -->
+    <div id="search-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+      <div class="bg-white p-6 rounded-lg w-11/12 sm:w-2/3 md:w-1/2 lg:w-1/3 relative z-50">
+        <input
+          type="text"
+          id="search-input"
+          class="w-full p-3 border rounded-lg focus:outline-none"
+          placeholder="Buscar productos..."
+        />
+        <button id="close-search-modal" class="mt-4 w-full bg-gray-800 text-white py-2 rounded-lg hover:bg-gray-700">Cerrar</button>
+        <div id="search-results" class="mt-4 space-y-4">
+          <!-- Resultados de búsqueda en tiempo real aparecerán aquí -->
         </div>
-        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Bloque de mensajes tipo toast -->
+    <div class="fixed top-4 right-4 space-y-4 z-50">
+        {% if messages %}
+          {% for message in messages %}
+            {% if message.tags == "success" %}
+              <div class="toast-message flex items-center text-white bg-green-500 p-4 rounded-lg shadow-lg" data-delay="5000">
+            {% elif message.tags == "info" %}
+              <div class="toast-message flex items-center text-white bg-blue-500 p-4 rounded-lg shadow-lg" data-delay="5000">
+            {% elif message.tags == "warning" %}
+              <div class="toast-message flex items-center text-white bg-yellow-500 p-4 rounded-lg shadow-lg" data-delay="5000">
+            {% elif message.tags == "error" %}
+              <div class="toast-message flex items-center text-white bg-red-500 p-4 rounded-lg shadow-lg" data-delay="5000">
+            {% else %}
+              <div class="toast-message flex items-center text-white bg-gray-500 p-4 rounded-lg shadow-lg" data-delay="5000">
+            {% endif %}
+                <span class="flex-1">{{ message }}</span>
+                <button type="button" onclick="this.parentElement.style.display='none';" class="ml-4 text-2xl text-white hover:text-gray-300 focus:outline-none">&times;</button>
+              </div>
+          {% endfor %}
         {% endif %}
     </div>
 
-    <main id="main-content">
-        {% block content %}
-        {% endblock %}
-    </main>
+    <main id="main-content">{% block content %} {% endblock %}</main>
+    <footer id="footer" class="bg-gray-800 text-white py-6 mt-auto">
+      <div class="text-center">
+          <p class="text-lg font-semibold">GOTTA © 2024 - Todos los derechos reservados</p>
+          <p class="text-sm mt-1">Síguenos en nuestras redes sociales</p>
+          <div class="flex justify-center space-x-4 mt-2">
+              <a href="#" class="text-white hover:text-blue-400">Facebook</a>
+              <a href="#" class="text-white hover:text-blue-500">Twitter</a>
+              <a href="#" class="text-white hover:text-pink-500">Instagram</a>
+          </div>
+      </div>
+  </footer>
 
-    <footer id="footer">
-        <p id="footer-text">GOTTA © 2024</p>
-    </footer>
-
-    <!-- Incluir Bootstrap y JavaScript para las alertas -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // Mostrar las alertas tipo toast automáticamente y que se cierren solas
-        document.addEventListener('DOMContentLoaded', function () {
-            var toastElList = [].slice.call(document.querySelectorAll('.toast'));
-            toastElList.forEach(function (toastEl) {
-                var toast = new bootstrap.Toast(toastEl, { autohide: true, delay: 3000 }); // Se cierra automáticamente después de 3 segundos
-                toast.show();
-            });
-        });
-    </script>
-</body>
+      document.addEventListener("DOMContentLoaded", function () {
+          const header = document.getElementById("header");
 
+          // Cambiar el fondo del header al hacer scroll
+          window.addEventListener("scroll", function () {
+              if (window.scrollY > 50) {
+                  header.classList.add("scrolled-header");
+              } else {
+                  header.classList.remove("scrolled-header");
+              }
+          });
+
+          const searchButton = document.getElementById('search-button');
+          const searchModal = document.getElementById('search-modal');
+          const searchInput = document.getElementById('search-input');
+          const closeSearchModal = document.getElementById('close-search-modal');
+          const resultsContainer = document.getElementById('search-results');
+      
+          // Abrir modal de búsqueda y enfocar el input
+          searchButton.addEventListener('click', function () {
+              searchModal.classList.remove('hidden');
+              searchInput.focus();
+          });
+      
+          // Cerrar modal de búsqueda y limpiar resultados
+          closeSearchModal.addEventListener('click', function () {
+              searchModal.classList.add('hidden');
+              searchInput.value = '';
+              resultsContainer.innerHTML = '';
+          });
+
+          // Búsqueda en tiempo real
+          searchInput.addEventListener('keyup', function () {
+              const query = this.value;
+              if (query.trim()) {
+                  fetch(`/search/?q=${query}`)
+                      .then(response => response.json())
+                      .then(data => {
+                          resultsContainer.innerHTML = '';
+                          if (data.products.length > 0) {
+                              data.products.forEach(product => {
+                                  let priceHtml = `<p class="text-gray-500">S/ ${parseFloat(product.price).toFixed(2)}</p>`;
+                                  
+                                  if (product.discounted_price) {
+                                      priceHtml = `
+                                          <p class="text-gray-500">
+                                              <span class="line-through">S/ ${parseFloat(product.price).toFixed(2)}</span>
+                                              <span class="text-red-500">S/ ${parseFloat(product.discounted_price).toFixed(2)}</span>
+                                          </p>
+                                      `;
+                                  }
+
+                                  resultsContainer.innerHTML += `
+                                      <div class="product flex items-center space-x-4 border-b pb-2 mb-2">
+                                          <a href="/product/${product.id}/" class="flex items-center space-x-4">
+                                              <img src="${product.image || '/static/images/default_product.png'}" alt="${product.name}" class="w-16 h-16 object-cover rounded-lg">
+                                              <div>
+                                                  <h3 class="text-gray-700 font-semibold">${product.name}</h3>
+                                                  ${priceHtml}
+                                              </div>
+                                          </a>
+                                      </div>`;
+                              });
+                          } else {
+                              resultsContainer.innerHTML = '<p class="text-gray-500 text-center">No hay productos disponibles.</p>';
+                          }
+                      });
+              } else {
+                  resultsContainer.innerHTML = '';
+              }
+          });
+      });
+    </script>
+  </body>
 </html>
