@@ -33,6 +33,21 @@
             width: 100vw;
             overflow-x: hidden;
         }
+        .message {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            min-width: 200px;
+            padding: 10px;
+            border-radius: 5px;
+            font-weight: bold;
+            color: white;
+        }
+        .message.success { background-color: #38a169; }
+        .message.error { background-color: #e53e3e; }
+        .message.warning { background-color: #dd6b20; }
+        .message.info { background-color: #3182ce; }
     </style>
 </head>
 
@@ -48,9 +63,15 @@
                 </svg>
             </button>
             <ul id="nav-list" class="hidden md:flex flex-1 justify-center space-x-6 text-center">
-                <li id="nav-home"><a href="{% url 'home' %}" class="hover:text-gray-500">Inicio</a></li>
-                <li id="nav-products"><a href="{% url 'products_list' %}" class="hover:text-gray-500">Productos</a></li>
-                <li id="nav-about"><a href="{% url 'about' %}" class="hover:text-gray-500">Nosotros</a></li>
+                <li id="nav-home">
+                    <a href="{% url 'home' %}" class="font-semibold hover:bg-gray-200 px-3 py-2 rounded">Inicio</a>
+                </li>
+                <li id="nav-products">
+                    <a href="{% url 'products_list' %}" class="font-semibold hover:bg-gray-200 px-3 py-2 rounded">Productos</a>
+                </li>
+                <li id="nav-about">
+                    <a href="{% url 'about' %}" class="font-semibold hover:bg-gray-200 px-3 py-2 rounded">Nosotros</a>
+                </li>
             </ul>
             <div class="flex items-center space-x-4">
                 <button id="search-button">
@@ -68,7 +89,7 @@
                     <a href="{% url 'profile' %}" id="nav-profile">
                         <img src="{% static 'images/logo_usuario.png' %}" alt="Mi Perfil" class="w-6 h-6" />
                     </a>
-                    <a href="{% url 'logout' %}" id="nav-logout" class="hover:text-gray-500">Cerrar Sesión</a>
+                    <a href="{% url 'logout' %}" id="nav-logout" class="font-semibold hover:bg-gray-200 px-3 py-2 rounded">Cerrar Sesión</a>
                 {% else %}
                     <a href="{% url 'login' %}" id="nav-login">
                         <img src="{% static 'images/logo_usuario.png' %}" alt="Iniciar Sesión" class="w-6 h-6" />
@@ -78,11 +99,20 @@
         </nav>
 
         <ul id="mobile-menu" class="md:hidden fixed top-0 left-0 w-full bg-white flex flex-col items-center space-y-4 pt-20 pb-4 z-40 hidden">
-            <li><a href="{% url 'home' %}" class="text-gray-800 hover:text-gray-500">Inicio</a></li>
-            <li><a href="{% url 'products_list' %}" class="text-gray-800 hover:text-gray-500">Productos</a></li>
-            <li><a href="{% url 'about' %}" class="text-gray-800 hover:text-gray-500">Nosotros</a></li>
+            <li><a href="{% url 'home' %}" class="text-gray-800 hover:bg-gray-200 px-3 py-2 rounded">Inicio</a></li>
+            <li><a href="{% url 'products_list' %}" class="text-gray-800 hover:bg-gray-200 px-3 py-2 rounded">Productos</a></li>
+            <li><a href="{% url 'about' %}" class="text-gray-800 hover:bg-gray-200 px-3 py-2 rounded">Nosotros</a></li>
         </ul>
     </header>
+
+    <!-- Bloque para mensajes de Django -->
+    <div id="messages">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="message {{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+    </div>
 
     <div id="search-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
         <div class="bg-white p-6 rounded-lg w-11/12 sm:w-2/3 md:w-1/2 lg:w-1/3 relative z-50">
@@ -110,6 +140,16 @@
             const header = document.getElementById("header");
             const hamburger = document.getElementById("hamburger");
             const mobileMenu = document.getElementById("mobile-menu");
+
+            // Ocultar mensajes después de 3 segundos
+            const messages = document.querySelectorAll('.message');
+            messages.forEach((message) => {
+                setTimeout(() => {
+                    message.style.transition = "opacity 0.5s";
+                    message.style.opacity = "0";
+                    setTimeout(() => message.remove(), 500); // Remover después de la transición
+                }, 3000); // 3 segundos de espera
+            });
 
             window.addEventListener("scroll", function () {
                 if (window.scrollY > 50) {
@@ -180,3 +220,4 @@
     </script>
 </body>
 </html>
+    
