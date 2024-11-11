@@ -11,6 +11,7 @@ from django.conf import settings
 from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from django.core.mail import EmailMultiAlternatives
+import os
 
 from .forms import UserRegisterForm, UserEditForm
 from .models import Product, Category, Cart, Order, OrderItem, Review, CartItem, ProductSize, ProductSizeDiscount,Filter

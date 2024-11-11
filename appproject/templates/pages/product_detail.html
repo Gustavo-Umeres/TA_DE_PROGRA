@@ -1,8 +1,8 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="flex flex-col min-h-screen"> <!-- Flexbox para mantener el footer en el fondo -->
-    <div class="flex-grow mt-40 mb-10"> <!-- Aumento del margen superior para mover el contenido hacia abajo -->
+<div class="flex flex-col min-h-screen">
+    <div class="flex-grow mt-40 mb-10">
         <div id="product-detail-container" class="max-w-3xl mx-auto bg-white p-6 rounded-lg shadow-md">
             <h1 id="product-name" class="text-3xl font-semibold text-gray-800 mb-6 text-center">{{ product.name }}</h1>
             
@@ -19,28 +19,42 @@
             <!-- Tallas y precios del producto -->
             <div id="product-sizes" class="mb-6">
                 {% if sizes_data %}
-                    <h3 class="text-lg font-medium text-gray-800 mb-3">Tallas Disponibles:</h3>
-                    <form id="size-selection-form" method="POST" action="{% url 'add_to_cart' product.id %}" class="space-y-4">
-                        {% csrf_token %}
-                        <select id="size" name="size_id" onchange="updatePriceAndStock()" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-800">
-                            <option value="" disabled selected class="text-gray-500">-- Selecciona una Talla --</option>
-                            {% for item in sizes_data %}
-                                <option value="{{ item.size.id }}" data-price="{{ item.min_price }}" data-discounted-price="{{ item.discounted_price }}" data-stock="{{ item.stock }}" class="text-gray-800">
-                                    {{ item.size.name }}
-                                </option>
-                            {% endfor %}
-                        </select>
-                        
-                        <p id="price-display" class="text-gray-600 font-semibold mt-2">
-                            <!-- Placeholder para el precio que se actualizará con JavaScript -->
+                    {% if sizes_data|length == 1 and sizes_data.0.size.name == "none" %}
+                        <!-- Si solo hay una talla y es "none", muestra directamente el precio -->
+                        <p id="price-display" class="text-gray-600 font-semibold mb-4">
+                            Precio por unidad: S/ {{ sizes_data.0.discounted_price|default:sizes_data.0.min_price|floatformat:2 }}
                         </p>
-                        
-                        <div id="add-to-cart" style="display: none;">
+                        <form id="size-selection-form" method="POST" action="{% url 'add_to_cart' product.id %}" class="space-y-4">
+                            {% csrf_token %}
+                            <input type="hidden" name="size_id" value="{{ sizes_data.0.size.id }}">
+                            
                             <label for="quantity" class="block font-medium text-gray-700">Cantidad:</label>
-                            <input type="number" id="quantity" name="quantity" min="1" value="1" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <input type="number" id="quantity" name="quantity" min="1" max="{{ sizes_data.0.stock }}" value="1" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                             <button type="submit" class="w-full bg-blue-600 text-white py-2 mt-4 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">Agregar al Carrito</button>
-                        </div>
-                    </form>
+                        </form>
+                    {% else %}
+                        <!-- Si hay tallas disponibles diferentes de "none", muestra el selector de tallas -->
+                        <h3 class="text-lg font-medium text-gray-800 mb-3">Tallas Disponibles:</h3>
+                        <form id="size-selection-form" method="POST" action="{% url 'add_to_cart' product.id %}" class="space-y-4">
+                            {% csrf_token %}
+                            <select id="size" name="size_id" onchange="updatePriceAndStock()" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-800">
+                                <option value="" disabled selected class="text-gray-500">-- Selecciona una Talla --</option>
+                                {% for item in sizes_data %}
+                                    <option value="{{ item.size.id }}" data-price="{{ item.min_price }}" data-discounted-price="{{ item.discounted_price }}" data-stock="{{ item.stock }}" class="text-gray-800">
+                                        {{ item.size.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            
+                            <p id="price-display" class="text-gray-600 font-semibold mt-2"></p>
+                            
+                            <div id="add-to-cart" style="display: none;">
+                                <label for="quantity" class="block font-medium text-gray-700">Cantidad:</label>
+                                <input type="number" id="quantity" name="quantity" min="1" value="1" required class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <button type="submit" class="w-full bg-blue-600 text-white py-2 mt-4 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">Agregar al Carrito</button>
+                            </div>
+                        </form>
+                    {% endif %}
                 {% else %}
                     <p class="text-gray-600">No hay tallas disponibles para este producto.</p>
                 {% endif %}
@@ -99,35 +113,25 @@
             const discountedPrice = parseFloat(selectedOption.getAttribute('data-discounted-price'));
             const stock = parseInt(selectedOption.getAttribute('data-stock'));
 
-            // Actualizar el límite máximo de cantidad según el stock
             quantityInput.max = stock;
-            quantityInput.value = Math.min(quantityInput.value, stock); // Asegura que la cantidad no supere el stock disponible
+            quantityInput.value = Math.min(quantityInput.value, stock);
 
             addToCartDiv.style.display = 'block';
 
-            // Mostrar el precio, con descuento si existe
             priceDisplay.innerHTML = !isNaN(discountedPrice) 
                 ? `<span class="line-through">Precio por unidad: S/ ${price.toFixed(2)}</span> <span class="text-red-500">S/ ${discountedPrice.toFixed(2)}</span>`
                 : `Precio por unidad: S/ ${price.toFixed(2)}`;
-
-            // Mensaje de depuración en la consola
-            console.log(`Talla seleccionada con stock de: ${stock}`);
-            console.log(`Cantidad máxima permitida actualizada a: ${quantityInput.max}`);
         } else {
             priceDisplay.innerHTML = '';
             addToCartDiv.style.display = 'none';
         }
     }
 
-    // Asegura que el valor de cantidad no exceda el stock cuando se cambia manualmente
     document.getElementById('quantity').addEventListener('input', function () {
         const maxQuantity = parseInt(this.max);
         if (parseInt(this.value) > maxQuantity) {
             this.value = maxQuantity;
         }
-
-        // Mensaje de depuración en la consola
-        console.log(`Cantidad ajustada al máximo permitido: ${this.value}`);
     });
 
     document.addEventListener("DOMContentLoaded", updatePriceAndStock);

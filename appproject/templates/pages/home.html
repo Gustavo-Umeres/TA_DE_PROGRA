@@ -1,92 +1,91 @@
-    {% extends 'base.html' %}
+{% extends 'base.html' %}
+{% load static %}
 
-    {% load static %}
-
-    {% block content %}
-    <!-- Carrusel de Banners -->
-    <div id="banner-container" class="relative w-full h-[75vh] overflow-hidden">
-        <!-- Efecto de oscurecimiento y texto centrado sobre el banner -->
-        <div class="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center z-10">
-            <h1 id="titulo-bienvenida" class="text-5xl md:text-6xl font-extrabold text-white text-center">Bienvenido a GOTTA</h1>
-        </div>
-
-        <!-- Banners -->
-        <div class="banner-slide absolute inset-0 transition-opacity duration-500" style="opacity: 1;">
-            <img src="{% static 'images/banner1.jpg' %}" alt="Banner 1" class="w-full h-full object-cover">
-        </div>
-        <div class="banner-slide absolute inset-0 transition-opacity duration-500" style="opacity: 0;">
-            <img src="{% static 'images/banner2.jpg' %}" alt="Banner 2" class="w-full h-full object-cover">
-        </div>
-        <div class="banner-slide absolute inset-0 transition-opacity duration-500" style="opacity: 0;">
-            <img src="{% static 'images/banner3.jpg' %}" alt="Banner 3" class="w-full h-full object-cover">
-        </div>
-
-        <!-- Botones de Navegación -->
-        <button id="prev-button" class="absolute left-4 top-1/2 transform -translate-y-1/2 bg-gray-900 bg-opacity-50 text-white text-3xl font-bold rounded-full w-12 h-12 flex items-center justify-center hover:bg-opacity-75 focus:outline-none z-20">
-            &#x276E;
-        </button>
-        <button id="next-button" class="absolute right-4 top-1/2 transform -translate-y-1/2 bg-gray-900 bg-opacity-50 text-white text-3xl font-bold rounded-full w-12 h-12 flex items-center justify-center hover:bg-opacity-75 focus:outline-none z-20">
-            &#x276F;
-        </button>
+{% block content %}
+<!-- Carrusel de Banners -->
+<div id="banner-container" class="relative w-full h-[60vh] sm:h-[70vh] md:h-[75vh] overflow-hidden">
+    <!-- Efecto de oscurecimiento y texto centrado sobre el banner -->
+    <div class="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center z-10">
+        <h1 id="titulo-bienvenida" class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold text-white text-center">Bienvenido a GOTTA</h1>
     </div>
 
-    <!-- Productos destacados con descuento -->
-    <h2 id="titulo-productos-destacados" class="text-2xl font-semibold text-center my-6 text-gray-800">Productos Destacados</h2>
-
-    <div id="products-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 max-w-5xl mx-auto">
-        {% for item in products %}
-        <div id="product-{{ item.product.id }}" class="product bg-white p-4 rounded-lg shadow-md text-center">
-            <a href="{% url 'product_detail' product_id=item.product.id %}">
-                {% if item.product.image %}
-                    <img id="product-img-{{ item.product.id }}" src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="w-full h-48 object-cover rounded-lg mb-4">
-                {% else %}
-                    <p class="text-red-500">Imagen no disponible</p>
-                {% endif %}
-            </a>
-            <h3 id="product-name-{{ item.product.id }}" class="text-lg font-medium text-gray-800 mb-2">
-                <a href="{% url 'product_detail' product_id=item.product.id %}" class="hover:text-blue-500">{{ item.product.name }}</a>
-            </h3>
-            <p id="product-price-{{ item.product.id }}" class="text-gray-600 font-semibold">
-                {% if item.discounted_price %}
-                    <span class="line-through">S/ {{ item.min_price }}</span>
-                    <span class="text-red-500">S/ {{ item.discounted_price|floatformat:2 }}</span>
-                {% else %}
-                    S/ {{ item.min_price|floatformat:2 }}
-                {% endif %}
-            </p>
-        </div>
-        {% endfor %}
+    <!-- Banners -->
+    <div class="banner-slide absolute inset-0 transition-opacity duration-500" style="opacity: 1;">
+        <img src="{% static 'images/banner001.png' %}" alt="Banner 1" class="w-full h-full object-cover">
+    </div>
+    <div class="banner-slide absolute inset-0 transition-opacity duration-500" style="opacity: 0;">
+        <img src="{% static 'images/banner002.png' %}" alt="Banner 2" class="w-full h-full object-cover">
+    </div>
+    <div class="banner-slide absolute inset-0 transition-opacity duration-500" style="opacity: 0;">
+        <img src="{% static 'images/banner003.png' %}" alt="Banner 3" class="w-full h-full object-cover">
     </div>
 
-    <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const banners = document.querySelectorAll(".banner-slide");
-        const prevButton = document.getElementById("prev-button");
-        const nextButton = document.getElementById("next-button");
-        let currentBannerIndex = 0;
+    <!-- Botones de Navegación -->
+    <button id="prev-button" class="absolute left-2 sm:left-4 top-1/2 transform -translate-y-1/2 bg-gray-900 bg-opacity-50 text-white text-2xl sm:text-3xl font-bold rounded-full w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center hover:bg-opacity-75 focus:outline-none z-20">
+        &#x276E;
+    </button>
+    <button id="next-button" class="absolute right-2 sm:right-4 top-1/2 transform -translate-y-1/2 bg-gray-900 bg-opacity-50 text-white text-2xl sm:text-3xl font-bold rounded-full w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center hover:bg-opacity-75 focus:outline-none z-20">
+        &#x276F;
+    </button>
+</div>
 
-        function showBanner(index) {
-            banners.forEach((banner, i) => {
-                banner.style.opacity = i === index ? "1" : "0";
-            });
-        }
+<!-- Productos destacados con descuento -->
+<h2 id="titulo-productos-destacados" class="text-2xl font-semibold text-center my-6 text-gray-800">Productos Destacados</h2>
 
-        function showNextBanner() {
-            currentBannerIndex = (currentBannerIndex + 1) % banners.length;
-            showBanner(currentBannerIndex);
-        }
+<div id="products-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-6xl mx-auto">
+    {% for item in products %}
+    <div id="product-{{ item.product.id }}" class="product bg-white p-4 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 text-center">
+        <a href="{% url 'product_detail' product_id=item.product.id %}">
+            {% if item.product.image %}
+                <img id="product-img-{{ item.product.id }}" src="{{ item.product.image.url }}" alt="{{ item.product.name }}" class="w-full h-80 object-cover rounded-lg mb-4"> <!-- Dimensiones ajustadas -->
+            {% else %}
+                <p class="text-red-500">Imagen no disponible</p>
+            {% endif %}
+        </a>
+        <h3 id="product-name-{{ item.product.id }}" class="text-lg font-medium text-gray-800 mb-2">
+            <a href="{% url 'product_detail' product_id=item.product.id %}" class="hover:text-blue-500">{{ item.product.name }}</a>
+        </h3>
+        <p id="product-price-{{ item.product.id }}" class="text-gray-600 font-semibold">
+            {% if item.discounted_price %}
+                <span class="line-through">S/ {{ item.min_price }}</span>
+                <span class="text-red-500">S/ {{ item.discounted_price|floatformat:2 }}</span>
+            {% else %}
+                S/ {{ item.min_price|floatformat:2 }}
+            {% endif %}
+        </p>
+    </div>
+    {% endfor %}
+</div>
 
-        function showPrevBanner() {
-            currentBannerIndex = (currentBannerIndex - 1 + banners.length) % banners.length;
-            showBanner(currentBannerIndex);
-        }
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const banners = document.querySelectorAll(".banner-slide");
+    const prevButton = document.getElementById("prev-button");
+    const nextButton = document.getElementById("next-button");
+    let currentBannerIndex = 0;
 
-        // Eventos para los botones de navegación
-        nextButton.addEventListener("click", showNextBanner);
-        prevButton.addEventListener("click", showPrevBanner);
+    function showBanner(index) {
+        banners.forEach((banner, i) => {
+            banner.style.opacity = i === index ? "1" : "0";
+        });
+    }
 
-        // Cambio automático de banners cada 5 segundos
-        setInterval(showNextBanner, 5000);
-    });
-    </script>
-    {% endblock %}
+    function showNextBanner() {
+        currentBannerIndex = (currentBannerIndex + 1) % banners.length;
+        showBanner(currentBannerIndex);
+    }
+
+    function showPrevBanner() {
+        currentBannerIndex = (currentBannerIndex - 1 + banners.length) % banners.length;
+        showBanner(currentBannerIndex);
+    }
+
+    // Eventos para los botones de navegación
+    nextButton.addEventListener("click", showNextBanner);
+    prevButton.addEventListener("click", showPrevBanner);
+
+    // Cambio automático de banners cada 5 segundos
+    setInterval(showNextBanner, 5000);
+});
+</script>
+{% endblock %}
