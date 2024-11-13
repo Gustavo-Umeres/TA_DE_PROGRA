@@ -384,53 +384,109 @@ def procesar_pago(request):
     preference_response = sdk.preference().create(preference_data)
     preference = preference_response["response"]
     return redirect(preference['init_point'])
-
 @login_required
 def pago_exito(request):
-    shipping_address = request.session.get('shipping_address')
-    total_price = request.session.get('total_price')
-    cart = get_object_or_404(Cart, user=request.user)
-    order = Order.objects.create(
-        user=request.user,
-        shipping_address=shipping_address,
-        total=total_price,
-        is_paid=True
-    )
+    try:
+        # Obtener datos de la sesión
+        shipping_address = request.session.get('shipping_address')
+        total_price = request.session.get('total_price')
 
-    for item in cart.items.all():
-        OrderItem.objects.create(
-            order=order,
-            product_size=item.product_size,
-            quantity=item.quantity,
-            price=item.product_size.price * item.quantity
+        if not shipping_address or total_price is None:
+            messages.error(request, 'Hubo un problema con los datos de envío o el total a pagar.')
+            return redirect('checkout')
+
+        # Obtener el carrito del usuario actual
+        cart = get_object_or_404(Cart, user=request.user)
+
+        # Crear la orden
+        order = Order.objects.create(
+            user=request.user,
+            shipping_address=shipping_address,
+            total=total_price,
+            is_paid=True
         )
-        item.product_size.stock -= item.quantity
-        item.product_size.save()
 
-    cart.items.all().delete()
-    send_order_confirmation_email(request, order)
-    messages.success(request, 'El pago fue exitoso y tu pedido ha sido creado.')
-    return redirect('home')
+        # Crear elementos de la orden y actualizar stock
+        for item in cart.items.all():
+            # Verificar si hay un descuento activo para este product_size
+            discount = ProductSizeDiscount.objects.filter(
+                product_size=item.product_size,
+                discount__is_active=True,
+                discount__start_date__lte=timezone.now(),
+                discount__end_date__gte=timezone.now()
+            ).first()
+
+            # Usar el precio con descuento si existe, de lo contrario, el precio regular
+            if discount and discount.discounted_price:
+                item_price = discount.discounted_price
+            else:
+                item_price = item.product_size.price
+
+            # Crear el OrderItem con el precio correcto
+            OrderItem.objects.create(
+                order=order,
+                product_size=item.product_size,
+                quantity=item.quantity,
+                price=item_price * item.quantity  # Guardar el subtotal del producto con la cantidad
+            )
+
+            # Reducir el stock
+            item.product_size.stock -= item.quantity
+            item.product_size.save()
+
+        # Limpiar el carrito después de procesar la orden
+        cart.items.all().delete()
+
+        # Enviar correo de confirmación de pedido
+        send_order_confirmation_email(request, order)
+
+        # Limpiar datos de la sesión
+        del request.session['shipping_address']
+        del request.session['total_price']
+        request.session.modified = True
+
+        messages.success(request, 'El pago fue exitoso y tu pedido ha sido creado.')
+        return redirect('home')
+
+    except ObjectDoesNotExist as e:
+        print(f"Error al procesar el pedido: {e}")
+        messages.error(request, 'Ocurrió un error al procesar tu pedido. Intenta de nuevo o contacta soporte.')
+        return redirect('checkout')
+
+    except Exception as e:
+        print(f"Error en pago_exito: {e}")
+        messages.error(request, 'Ocurrió un error inesperado. Intenta de nuevo o contacta soporte.')
+        return redirect('checkout')
+
 
 def send_order_confirmation_email(request, order):
-    order_items = order.items.all()
-    subject = "Confirmación de tu compra en GOTTA"
-    html_message = render_to_string('emails/confirmacion_compra.html', {
-        'user': request.user,
-        'order': order,
-        'items': order_items,
-        'total_price': order.total,
-        'shipping_address': order.shipping_address,
-    })
-    plain_message = strip_tags(html_message)
-    email = EmailMultiAlternatives(
-        subject,
-        plain_message,
-        settings.DEFAULT_FROM_EMAIL,
-        [request.user.email]
-    )
-    email.attach_alternative(html_message, "text/html")
-    email.send()
+    try:
+        # Obtener los elementos de la orden y asegurar que `size` esté disponible
+        order_items = order.items.select_related('product_size__size').all()
+        
+        subject = "Confirmación de tu compra en GOTTA"
+        html_message = render_to_string('emails/confirmacion_compra.html', {
+            'user': request.user,
+            'order': order,
+            'items': order_items,
+            'total_price': order.total,
+            'shipping_address': order.shipping_address,
+        })
+        plain_message = strip_tags(html_message)
+        
+        email = EmailMultiAlternatives(
+            subject,
+            plain_message,
+            settings.DEFAULT_FROM_EMAIL,
+            [request.user.email]
+        )
+        email.attach_alternative(html_message, "text/html")
+        email.send()
+
+    except Exception as e:
+        print(f"Error al enviar el correo de confirmación: {e}")
+        messages.error(request, 'No se pudo enviar la confirmación del pedido por correo.')
+
 
 @login_required
 def pago_fallo(request):
