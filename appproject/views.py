@@ -14,13 +14,13 @@ from django.core.mail import EmailMultiAlternatives
 import os
 
 from .forms import UserRegisterForm, UserEditForm
-from .models import Product, Category, Cart, Order, OrderItem, Review, CartItem, ProductSize, ProductSizeDiscount,Filter
+from .models import Product, Category, Cart, Order, OrderItem, Review, CartItem, ProductSize, ProductSizeDiscount,Filter,FilterValue
 
 import mercadopago
 
 User = get_user_model()
 
-# Vista de inicio
+
 # Vista de inicio   
 def home(request):
     categories = Category.objects.all()
@@ -35,7 +35,7 @@ def home(request):
     # Filtrar los productos con los IDs obtenidos y limitarlos a 4
     products = Product.objects.filter(id__in=discounted_product_ids).distinct()[:4]
     
-    # Construir datos de producto con precios mínimos y descuentos
+    # Construir datos de producto con precios mínimos, descuentos e imágenes
     product_data = []
     for product in products:
         min_price = product.sizes.aggregate(Min('price'))['price__min']
@@ -48,16 +48,22 @@ def home(request):
         ).first()
         if active_discount:
             discounted_price = active_discount.discounted_price
+        
+        # Recuperar todas las imágenes del producto
+        images = product.images.all()
+
         product_data.append({
             'product': product,
             'min_price': min_price,
             'discounted_price': discounted_price,
+            'images': images  # Incluir imágenes en los datos
         })
 
     return render(request, 'pages/home.html', {
         'categories': categories,
         'products': product_data
     })
+
 
 
 # Vista de registro
@@ -164,7 +170,6 @@ def add_to_cart(request, product_id):
     return redirect('product_detail', product_id=product_id)
 
 
-
 @login_required
 def view_cart(request):
     # Obtener el carrito del usuario actual
@@ -189,7 +194,7 @@ def view_cart(request):
         else:
             unit_price = item.product_size.price
 
-        # Guardar el precio unitario para el template
+        # Guardar el precio unitario y el precio total por item para el template
         item.unit_price = unit_price
         item.total_price = unit_price * item.quantity
         total_price += item.total_price
@@ -198,6 +203,7 @@ def view_cart(request):
         'cart_items': cart_items,
         'total_price': total_price,
     })
+
 
 # Vista de checkout
 @login_required
@@ -231,8 +237,9 @@ def checkout_view(request):
             messages.error(request, 'Por favor, proporciona una dirección de envío.')
             return redirect('checkout')
 
+        # Guardar la dirección de envío y el precio total en la sesión para el proceso de pago
         request.session['shipping_address'] = shipping_address
-        request.session['total_price'] = float(total_price)  # Convertir total_price a float
+        request.session['total_price'] = float(total_price)  # Convertir total_price a float para la sesión
         request.session.modified = True
         return redirect('procesar_pago')
 
@@ -255,12 +262,15 @@ def product_detail(request, product_id):
     product = get_object_or_404(Product, id=product_id)
     reviews = product.reviews.all()
 
-    # Obtén los precios mínimos, descuentos y stock para cada talla del producto
+    # Obtener todas las imágenes del producto
+    product_images = product.images.all()
+
+    # Obtener los precios mínimos, descuentos y stock para cada talla del producto
     sizes_data = []
     for size in product.sizes.all():
         min_price = size.price
         discounted_price = None
-        stock = size.stock  # Asegúrate de incluir el stock
+        stock = size.stock  # Asegurar incluir el stock
         
         active_discount = ProductSizeDiscount.objects.filter(
             product_size=size,
@@ -273,16 +283,25 @@ def product_detail(request, product_id):
             discounted_price = active_discount.discounted_price
         
         sizes_data.append({
-            'size': size.size,  
+            'size': size.size,
             'min_price': min_price,
             'discounted_price': discounted_price,
-            'stock': stock,  # Agrega el stock aquí
+            'stock': stock,  # Incluir el stock aquí
         })
+
+    # Obtener los filtros y valores de filtro aplicables al producto
+    filters = Filter.objects.all()
+    filter_values = {}
+    for filter in filters:
+        values = FilterValue.objects.filter(filter=filter)
+        filter_values[filter.name] = values
 
     return render(request, 'pages/product_detail.html', {
         'product': product,
         'sizes_data': sizes_data,
         'reviews': reviews,
+        'images': product_images,  # Pasar imágenes al contexto
+        'filter_values': filter_values  # Pasar valores de filtro al contexto
     })
 
 
@@ -292,6 +311,7 @@ def update_cart(request):
     cart = get_object_or_404(Cart, user=request.user)
     if request.method == 'POST':
         action = request.POST.get('action')
+        
         for item in cart.items.all():
             item_id = item.id
             if f'remove_{item_id}' in action:
@@ -302,11 +322,17 @@ def update_cart(request):
                 item.save()
                 messages.success(request, f'Se ha disminuido la cantidad de "{item.product_size.product.name}".')
             elif f'increase_{item_id}' in action:
-                item.quantity += 1
-                item.save()
-                messages.success(request, f'Se ha aumentado la cantidad de "{item.product_size.product.name}".')
+                # Verificar que la cantidad no exceda el stock disponible
+                if item.quantity + 1 > item.product_size.stock:
+                    messages.error(request, f'No puedes agregar más de {item.product_size.stock} unidades de esta talla.')
+                else:
+                    item.quantity += 1
+                    item.save()
+                    messages.success(request, f'Se ha aumentado la cantidad de "{item.product_size.product.name}".')
+        
         return redirect('view_cart')
     return redirect('view_cart')
+
 
 # Vista de agregar revisión
 @login_required
@@ -315,10 +341,22 @@ def add_review(request, product_id):
         rating = request.POST.get('rating')
         comment = request.POST.get('comment')
         product = get_object_or_404(Product, id=product_id)
+        
+        # Verificar que se haya ingresado una calificación y un comentario
         if rating and comment:
-            Review.objects.create(product=product, user=request.user, rating=rating, comment=comment)
+            # Crear la revisión
+            Review.objects.create(
+                product=product,
+                user=request.user,
+                rating=rating,
+                comment=comment
+            )
             messages.success(request, 'Revisión agregada exitosamente.')
+        else:
+            messages.error(request, 'Por favor, proporciona una calificación y un comentario.')
+
         return redirect('product_detail', product_id=product.id)
+
 
 # Vista 'Sobre Nosotros'
 def about(request):
@@ -368,6 +406,7 @@ def procesar_pago(request):
             "currency_id": "PEN"
         })
 
+    # Configurar los datos de la preferencia para Mercado Pago
     preference_data = {
         "items": items,
         "payer": {"email": request.user.email},
@@ -430,7 +469,7 @@ def pago_exito(request):
                 price=item_price * item.quantity  # Guardar el subtotal del producto con la cantidad
             )
 
-            # Reducir el stock
+            # Reducir el stock del producto
             item.product_size.stock -= item.quantity
             item.product_size.save()
 
@@ -447,11 +486,6 @@ def pago_exito(request):
 
         messages.success(request, 'El pago fue exitoso y tu pedido ha sido creado.')
         return redirect('home')
-
-    except ObjectDoesNotExist as e:
-        print(f"Error al procesar el pedido: {e}")
-        messages.error(request, 'Ocurrió un error al procesar tu pedido. Intenta de nuevo o contacta soporte.')
-        return redirect('checkout')
 
     except Exception as e:
         print(f"Error en pago_exito: {e}")
@@ -488,6 +522,7 @@ def send_order_confirmation_email(request, order):
         messages.error(request, 'No se pudo enviar la confirmación del pedido por correo.')
 
 
+
 @login_required
 def pago_fallo(request):
     messages.error(request, 'El pago falló. Intenta nuevamente.')
@@ -499,13 +534,15 @@ def pago_pendiente(request):
     return redirect('home')
 
 
-
 def products_list(request):
     query = request.GET.get('q', '')
     category_id = request.GET.get('category', 'all')
-    filter_id = request.GET.get('filter', 'all')
+    selected_filters = request.GET.getlist('filter')  # Obtener múltiples filtros
     categories = Category.objects.all()
+
+    # Obtener filtros y organizar los valores de filtro por categorías relevantes
     filters = Filter.objects.all()
+    attribute_filters = {filter.name: filter.values.all() for filter in filters}  # Agrupa valores por filtro
 
     # Filtrar productos
     products = Product.objects.all().order_by('id')
@@ -513,10 +550,10 @@ def products_list(request):
         products = products.filter(Q(name__icontains=query) | Q(description__icontains=query))
     if category_id != 'all':
         products = products.filter(category_id=category_id)
-    if filter_id != 'all':
-        products = products.filter(filters__filter_id=filter_id)
+    if selected_filters:
+        products = products.filter(filter_values__filter_value__id__in=selected_filters).distinct()
 
-    # Calcular precios mínimos y descuentos
+    # Construir datos de producto con precios mínimos, descuentos e imágenes
     product_data = []
     for product in products:
         min_price = product.sizes.aggregate(Min('price'))['price__min']
@@ -524,10 +561,15 @@ def products_list(request):
         active_discount = product.sizes.filter(discounts__discount__is_active=True).first()
         if active_discount:
             discounted_price = active_discount.discounts.first().discounted_price
+        
+        # Obtener la primera imagen del producto
+        first_image = product.images.first()
+
         product_data.append({
             'product': product,
             'min_price': min_price,
             'discounted_price': discounted_price,
+            'first_image': first_image  # Incluir la primera imagen
         })
 
     # Paginación
@@ -537,23 +579,25 @@ def products_list(request):
 
     return render(request, 'pages/products_list.html', {
         'categories': categories,
-        'filters': filters,
+        'attribute_filters': attribute_filters,  # Pasar los filtros organizados
         'page_obj': page_obj,
         'selected_category': category_id,
-        'selected_filter': filter_id,
+        'selected_filters': selected_filters,  # Pasar todos los filtros seleccionados
     })
     
     
     
-
 def search_products(request):
     query = request.GET.get('q', '')
     products = Product.objects.filter(Q(name__icontains=query) | Q(description__icontains=query)).order_by('name')
     
     products_list = []
     for product in products:
+        # Obtener el precio mínimo de las tallas del producto
         min_price = product.sizes.aggregate(Min('price'))['price__min']
         discounted_price = None
+        
+        # Verificar si hay un descuento activo en alguna talla
         active_discount = ProductSizeDiscount.objects.filter(
             product_size__product=product,
             discount__is_active=True,
@@ -564,28 +608,65 @@ def search_products(request):
         if active_discount:
             discounted_price = active_discount.discounted_price
         
+        # Obtener la primera imagen del producto para mostrar en los resultados
+        first_image = product.images.first().image.url if product.images.exists() else None
+
+        # Agregar información del producto a la lista de resultados
         products_list.append({
             'id': product.id,
             'name': product.name,
             'price': min_price,
             'discounted_price': discounted_price,
-            'image': product.image.url if product.image else None,
+            'image': first_image
         })
 
     return JsonResponse({'products': products_list})
 
 
+
 def products_by_category(request, category_id):
     category = get_object_or_404(Category, id=category_id)
-    products = Product.objects.filter(category=category)
-    paginator = Paginator(products, 12)
+    products = Product.objects.filter(category=category).order_by('id')
+    
+    # Construir datos de producto con precios mínimos, descuentos e imágenes
+    product_data = []
+    for product in products:
+        min_price = product.sizes.aggregate(Min('price'))['price__min']
+        discounted_price = None
+        
+        # Verificar si hay un descuento activo en alguna talla
+        active_discount = ProductSizeDiscount.objects.filter(
+            product_size__product=product,
+            discount__is_active=True,
+            discount__start_date__lte=timezone.now(),
+            discount__end_date__gte=timezone.now()
+        ).first()
+        
+        if active_discount:
+            discounted_price = active_discount.discounted_price
+        
+        # Obtener la primera imagen del producto
+        first_image = product.images.first().image.url if product.images.exists() else None
+
+        # Agregar información del producto a la lista de productos
+        product_data.append({
+            'product': product,
+            'min_price': min_price,
+            'discounted_price': discounted_price,
+            'first_image': first_image  # Incluir la primera imagen
+        })
+
+    # Paginación
+    paginator = Paginator(product_data, 12)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
+
     return render(request, 'pages/products_list.html', {
         'category': category,
         'page_obj': page_obj,
-        'products': products
+        'products': product_data,
     })
+
 
 def get_products_with_min_price():
     products = Product.objects.filter(sizes__price__isnull=False).distinct().order_by('id')
@@ -609,13 +690,43 @@ def get_products_with_min_price():
     return product_data
 
 def product_list_view(request):
-    products_with_prices = get_products_with_min_price()
-    categories = Category.objects.all()
-    paginator = Paginator(products_with_prices, 10)
+    # Obtener todos los productos con al menos una talla que tenga precio
+    products = Product.objects.filter(sizes__price__isnull=False).distinct().order_by('id')
+    
+    # Construir datos de producto con precios mínimos, descuentos e imágenes
+    product_data = []
+    for product in products:
+        min_price = product.sizes.aggregate(Min('price'))['price__min']
+        discounted_price = None
+        
+        # Verificar si hay un descuento activo en alguna talla
+        active_discount = ProductSizeDiscount.objects.filter(
+            product_size__product=product,
+            discount__is_active=True,
+            discount__start_date__lte=timezone.now(),
+            discount__end_date__gte=timezone.now()
+        ).first()
+        
+        if active_discount:
+            discounted_price = active_discount.discounted_price
+        
+        # Obtener la primera imagen del producto
+        first_image = product.images.first().image.url if product.images.exists() else None
+
+        # Agregar información del producto a la lista de productos
+        product_data.append({
+            'product': product,
+            'min_price': min_price,
+            'discounted_price': discounted_price,
+            'first_image': first_image  # Incluir la primera imagen
+        })
+
+    # Paginación
+    paginator = Paginator(product_data, 10)  # Muestra 10 productos por página
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    context = {
+
+    return render(request, 'pages/products_list.html', {
         'page_obj': page_obj,
-        'categories': categories,
-    }
-    return render(request, 'pages/products_list.html', context)
+        'categories': Category.objects.all(),
+    })

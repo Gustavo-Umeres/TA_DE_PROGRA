@@ -27,11 +27,18 @@ class Product(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField()
     category = models.ForeignKey(Category, on_delete=models.CASCADE)
-    image = models.ImageField(storage=MediaCloudinaryStorage(), upload_to='products/')
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.name
+
+# Modelo de Imagen del Producto (manejado con Cloudinary)
+class ProductImage(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='images')
+    image = models.ImageField(storage=MediaCloudinaryStorage(), upload_to='products/')
+
+    def __str__(self):
+        return f'Imagen de {self.product.name}'
 
 # Modelo de Relación entre Producto y Talla (con Precio Específico)
 class ProductSize(models.Model):
@@ -138,10 +145,18 @@ class Filter(models.Model):
     def __str__(self):
         return self.name
 
-# Relación entre Producto y Filtro
-class ProductFilter(models.Model):
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='filters')
-    filter = models.ForeignKey(Filter, on_delete=models.CASCADE, related_name='products')
+# Modelo de Valores de Filtro (Ej.: Rojo, Negro, etc. para el filtro de Color)
+class FilterValue(models.Model):
+    filter = models.ForeignKey(Filter, on_delete=models.CASCADE, related_name='values')
+    value = models.CharField(max_length=50)
 
     def __str__(self):
-        return f'{self.product.name} - {self.filter.name}'
+        return f'{self.filter.name} - {self.value}'
+
+# Relación entre Producto y Valor de Filtro
+class ProductFilterValue(models.Model):
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name='filter_values')
+    filter_value = models.ForeignKey(FilterValue, on_delete=models.CASCADE, related_name='products')
+
+    def __str__(self):
+        return f'{self.product.name} - {self.filter_value}'

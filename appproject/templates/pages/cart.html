@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block content %}
 <div class="flex flex-col min-h-screen">
@@ -25,7 +26,11 @@
                         {% for item in cart_items %}
                         <tr id="unique-cart-item-{{ item.id }}" class="text-center border-b md:table-row block mb-4 md:mb-0"> <!-- Hacer que cada producto sea un bloque en móviles -->
                             <td class="p-3 md:table-cell block text-center md:text-left">
-                                <img src="{{ item.product_size.product.image.url }}" alt="{{ item.product_size.product.name }}" class="w-20 h-20 object-cover rounded mx-auto md:mx-0">
+                                {% if item.product_size.product.images.first %}
+                                    <img src="{{ item.product_size.product.images.first.image.url }}" alt="{{ item.product_size.product.name }}" class="w-20 h-20 object-cover rounded mx-auto md:mx-0">
+                                {% else %}
+                                    <img src="{% static 'images/default_product.png' %}" alt="Imagen no disponible" class="w-20 h-20 object-cover rounded mx-auto md:mx-0">
+                                {% endif %}
                             </td>
                             <td class="p-3 text-gray-800 font-medium md:table-cell block text-center md:text-left">
                                 {{ item.product_size.product.name }}

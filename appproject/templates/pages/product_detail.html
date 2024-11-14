@@ -6,9 +6,23 @@
         <div id="product-detail-container" class="max-w-3xl mx-auto bg-white p-6 rounded-lg shadow-md">
             <h1 id="product-name" class="text-3xl font-semibold text-gray-800 mb-6 text-center">{{ product.name }}</h1>
             
-            <!-- Imagen del producto -->
-            <div id="product-image" class="flex justify-center mb-6">
-                <img class="w-full max-w-md rounded-lg" src="{{ product.image.url }}" alt="{{ product.name }}">
+            <!-- Carrusel de Imágenes del Producto -->
+            <div id="product-image-carousel" class="relative mb-6">
+                <div class="overflow-hidden relative">
+                    <div class="flex transition-transform duration-500 ease-in-out" id="carousel-images">
+                        {% for image in product.images.all %}
+                            <div class="min-w-full">
+                                <img class="w-full h-auto max-w-md mx-auto rounded-lg" src="{{ image.image.url }}" alt="Imagen de {{ product.name }}">
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <button id="prev-btn" class="absolute top-1/2 left-4 transform -translate-y-1/2 bg-gray-800 text-white rounded-full p-2 hover:bg-gray-700 focus:outline-none">
+                    &lt;
+                </button>
+                <button id="next-btn" class="absolute top-1/2 right-4 transform -translate-y-1/2 bg-gray-800 text-white rounded-full p-2 hover:bg-gray-700 focus:outline-none">
+                    &gt;
+                </button>
             </div>
             
             <!-- Descripción del producto -->
@@ -40,7 +54,7 @@
                             <select id="size" name="size_id" onchange="updatePriceAndStock()" class="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-gray-800">
                                 <option value="" disabled selected class="text-gray-500">-- Selecciona una Talla --</option>
                                 {% for item in sizes_data %}
-                                    <option value="{{ item.size.id }}" data-price="{{ item.min_price }}" data-discounted-price="{{ item.discounted_price }}" data-stock="{{ item.stock }}" class="text-gray-800">
+                                    <option value="{{ item.size.id }}" data-price="{{ item.min_price }}" data-discounted-price="{{ item.discounted_price }}" data-stock="{{ item.stock }}" class="text-gray-800" {% if item.size.name == "none" %}selected{% endif %}>
                                         {{ item.size.name }}
                                     </option>
                                 {% endfor %}
@@ -99,6 +113,31 @@
     </div>
 </div>
 
+<!-- Script para el carrusel de imágenes -->
+<script>
+    const carouselImages = document.getElementById('carousel-images');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    let currentIndex = 0;
+
+    function updateCarousel() {
+        const totalImages = carouselImages.children.length;
+        carouselImages.style.transform = `translateX(-${currentIndex * 100}%)`;
+    }
+
+    prevBtn.addEventListener('click', () => {
+        currentIndex = (currentIndex > 0) ? currentIndex - 1 : carouselImages.children.length - 1;
+        updateCarousel();
+    });
+
+    nextBtn.addEventListener('click', () => {
+        currentIndex = (currentIndex < carouselImages.children.length - 1) ? currentIndex + 1 : 0;
+        updateCarousel();
+    });
+
+    updateCarousel();
+</script>
+
 <!-- Script para actualizar el precio al seleccionar la talla y limitar la cantidad por el stock -->
 <script>
     function updatePriceAndStock() {
@@ -118,11 +157,11 @@
 
             addToCartDiv.style.display = 'block';
 
-            priceDisplay.innerHTML = !isNaN(discountedPrice) 
-                ? `<span class="line-through">Precio por unidad: S/ ${price.toFixed(2)}</span> <span class="text-red-500">S/ ${discountedPrice.toFixed(2)}</span>`
+            priceDisplay.innerHTML = discountedPrice && !isNaN(discountedPrice)
+                ? `Precio por unidad: <span class="line-through">S/ ${price.toFixed(2)}</span> <span class="text-red-500">S/ ${discountedPrice.toFixed(2)}</span>`
                 : `Precio por unidad: S/ ${price.toFixed(2)}`;
         } else {
-            priceDisplay.innerHTML = '';
+            priceDisplay.innerHTML = 'Selecciona una talla para ver el precio';
             addToCartDiv.style.display = 'none';
         }
     }
@@ -134,6 +173,16 @@
         }
     });
 
-    document.addEventListener("DOMContentLoaded", updatePriceAndStock);
+    document.addEventListener("DOMContentLoaded", function() {
+        const select = document.getElementById('size');
+        
+        for (let i = 0; i < select.options.length; i++) {
+            if (select.options[i].textContent.trim().toLowerCase() === "none") {
+                select.selectedIndex = i;
+                updatePriceAndStock();
+                break;
+            }
+        }
+    });
 </script>
 {% endblock %}

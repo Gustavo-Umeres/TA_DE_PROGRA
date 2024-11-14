@@ -2,11 +2,11 @@
 {% load static %}
 
 {% block content %}
-<div class="min-h-screen mt-40"> <!-- Ajuste de margen superior e inferior -->
+<div class="min-h-screen mt-40">
     <h1 id="titulo-lista-productos" class="text-2xl font-semibold text-center my-6 text-gray-800">Lista de Productos</h1>
 
     <div class="flex flex-col lg:flex-row lg:gap-10 lg:pl-10">
-        <!-- Panel lateral de filtros (con margen extra a la izquierda) -->
+        <!-- Panel lateral de filtros -->
         <div class="bg-white p-4 rounded-lg shadow-md max-w-xs w-60 mx-auto lg:mx-0 mb-6 lg:mb-0">
             <h3 class="text-xl font-semibold text-gray-700 mb-4">Filtros</h3>
             
@@ -27,39 +27,40 @@
                 </ul>
             </div>
 
-            <!-- Filtro de atributos específicos -->
+            <!-- Filtro de atributos específicos con selección múltiple -->
             <div>
                 <h4 class="text-lg font-medium text-gray-700 mb-3">Atributos</h4>
-                <ul class="space-y-2">
-                    <li>
-                        <input type="radio" id="specific-filter-all" name="filter" value="all" {% if not selected_filter or selected_filter == "all" %}checked{% endif %}>
-                        <label for="specific-filter-all" class="text-gray-700 cursor-pointer">Todos los Atributos</label>
-                    </li>
-                    {% for filter in filters %}
-                    <li>
-                        <input type="radio" id="filter-{{ filter.id }}" name="filter" value="{{ filter.id }}" {% if selected_filter == filter.id|stringformat:"s" %}checked{% endif %}>
-                        <label for="filter-{{ filter.id }}" class="text-gray-600 cursor-pointer">{{ filter.name }}</label>
-                    </li>
-                    {% endfor %}
-                </ul>
+                {% for attribute, values in attribute_filters.items %}
+                    <div class="mb-4">
+                        <h5 class="text-md font-semibold text-gray-700">{{ attribute }}</h5>
+                        <ul class="space-y-2">
+                            {% for value in values %}
+                            <li>
+                                <input type="checkbox" id="filter-{{ value.id }}" name="filter" value="{{ value.id }}" {% if value.id|stringformat:"s" in selected_filters %}checked{% endif %}>
+                                <label for="filter-{{ value.id }}" class="text-gray-600 cursor-pointer">{{ value.value }}</label>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endfor %}
             </div>
         </div>
 
-        <!-- Contenedor de productos con padding a la derecha -->
+        <!-- Contenedor de productos -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6 flex-1 pr-4 lg:pr-10" id="products-container">
             {% for item in page_obj %}
             <div class="product bg-white p-3 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300">
-                <a href="{% url 'product_detail' product_id=item.product.id %}">
-                    {% if item.product.image %}
-                        <img class="w-full h-72 object-cover rounded-lg mb-3" src="{{ item.product.image.url }}" alt="{{ item.product.name }}">
+                <a href="{% url 'product_detail' item.product.id %}">
+                    {% if item.first_image %}
+                        <img class="w-full h-72 object-cover rounded-lg mb-3" src="{{ item.first_image.image.url }}" alt="{{ item.product.name }}">
                     {% else %}
-                        <p class="text-red-500">Imagen no disponible</p>
+                        <img src="{% static 'images/default_product.png' %}" alt="Imagen no disponible" class="w-full h-72 object-cover rounded-lg mb-3">
                     {% endif %}
                     <h3 class="text-md font-medium text-gray-800 text-center">{{ item.product.name }}</h3>
                 </a>
                 <p class="text-center text-gray-600 font-semibold mt-2">
                     {% if item.discounted_price %}
-                        <span class="line-through">S/ {{ item.min_price }}</span>
+                        <span class="line-through">S/ {{ item.min_price|floatformat:2 }}</span>
                         <span class="text-red-500">S/ {{ item.discounted_price|floatformat:2 }}</span>
                     {% else %}
                         S/ {{ item.min_price|floatformat:2 }}
@@ -76,13 +77,13 @@
     <div class="pagination mt-6 text-center" id="pagination-container">
         <span class="step-links text-gray-700 space-x-2">
             {% if page_obj.has_previous %}
-                <a href="?page=1{% if selected_category %}&category={{ selected_category }}{% endif %}{% if selected_filter %}&filter={{ selected_filter }}{% endif %}" class="text-blue-500 hover:underline">&laquo; Primera</a>
-                <a href="?page={{ page_obj.previous_page_number }}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if selected_filter %}&filter={{ selected_filter }}{% endif %}" class="text-blue-500 hover:underline">Anterior</a>
+                <a href="?page=1{% if selected_category %}&category={{ selected_category }}{% endif %}{% for filter in selected_filters %}&filter={{ filter }}{% endfor %}" class="text-blue-500 hover:underline">&laquo; Primera</a>
+                <a href="?page={{ page_obj.previous_page_number }}{% if selected_category %}&category={{ selected_category }}{% endif %}{% for filter in selected_filters %}&filter={{ filter }}{% endfor %}" class="text-blue-500 hover:underline">Anterior</a>
             {% endif %}
             <span class="font-medium">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
             {% if page_obj.has_next %}
-                <a href="?page={{ page_obj.next_page_number }}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if selected_filter %}&filter={{ selected_filter }}{% endif %}" class="text-blue-500 hover:underline">Siguiente</a>
-                <a href="?page={{ page_obj.paginator.num_pages }}{% if selected_category %}&category={{ selected_category }}{% endif %}{% if selected_filter %}&filter={{ selected_filter }}{% endif %}" class="text-blue-500 hover:underline">Última &raquo;</a>
+                <a href="?page={{ page_obj.next_page_number }}{% if selected_category %}&category={{ selected_category }}{% endif %}{% for filter in selected_filters %}&filter={{ filter }}{% endfor %}" class="text-blue-500 hover:underline">Siguiente</a>
+                <a href="?page={{ page_obj.paginator.num_pages }}{% if selected_category %}&category={{ selected_category }}{% endif %}{% for filter in selected_filters %}&filter={{ filter }}{% endfor %}" class="text-blue-500 hover:underline">Última &raquo;</a>
             {% endif %}
         </span>
     </div>
@@ -93,16 +94,22 @@
 document.addEventListener("DOMContentLoaded", function() {
     const applyFilters = () => {
         const selectedCategory = document.querySelector("input[name='category']:checked").value;
-        const selectedFilter = document.querySelector("input[name='filter']:checked").value;
-        window.location.href = `{% url 'products_list' %}?category=${selectedCategory}&filter=${selectedFilter}`;
+        const selectedFilters = Array.from(document.querySelectorAll("input[name='filter']:checked")).map(cb => cb.value);
+        
+        let url = `{% url 'products_list' %}?category=${selectedCategory}`;
+        selectedFilters.forEach(filter => {
+            url += `&filter=${filter}`;
+        });
+        
+        window.location.href = url;
     };
 
     document.querySelectorAll("input[name='category']").forEach(radio => {
         radio.addEventListener("change", applyFilters);
     });
 
-    document.querySelectorAll("input[name='filter']").forEach(radio => {
-        radio.addEventListener("change", applyFilters);
+    document.querySelectorAll("input[name='filter']").forEach(checkbox => {
+        checkbox.addEventListener("change", applyFilters);
     });
 });
 </script>

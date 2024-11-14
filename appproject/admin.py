@@ -1,8 +1,8 @@
 from django.contrib import admin
 from .models import (
-    User, Category, Size, Product, ProductSize, Order, OrderItem,
+    User, Category, Size, Product, ProductImage, ProductSize, Order, OrderItem,
     Cart, CartItem, Review, Discount, ProductSizeDiscount,
-    Filter, ProductFilter
+    Filter, FilterValue, ProductFilterValue
 )
 from django.db.models import Sum
 
@@ -23,9 +23,9 @@ class ProductSizeInline(admin.TabularInline):
     extra = 1
     readonly_fields = ('price', 'stock')
 
-# Inline for ProductFilter
-class ProductFilterInline(admin.TabularInline):
-    model = ProductFilter
+# Inline for ProductImage
+class ProductImageInline(admin.TabularInline):
+    model = ProductImage
     extra = 1
 
 # Inline for ProductSizeDiscount in ProductSize
@@ -33,6 +33,11 @@ class ProductSizeDiscountInline(admin.TabularInline):
     model = ProductSizeDiscount
     extra = 1
     readonly_fields = ('discounted_price',)
+
+# Inline for ProductFilterValue
+class ProductFilterValueInline(admin.TabularInline):
+    model = ProductFilterValue
+    extra = 1
 
 @admin.register(User)
 class UserAdmin(admin.ModelAdmin):
@@ -55,7 +60,7 @@ class ProductAdmin(admin.ModelAdmin):
     list_display = ('name', 'category', 'created_at', 'total_stock')
     list_filter = ('category', 'created_at')
     search_fields = ('name', 'description')
-    inlines = [ProductSizeInline, ProductFilterInline]
+    inlines = [ProductSizeInline, ProductImageInline, ProductFilterValueInline]
 
     def total_stock(self, obj):
         return ProductSize.objects.filter(product=obj).aggregate(total=Sum('stock'))['total'] or 0
@@ -122,8 +127,13 @@ class FilterAdmin(admin.ModelAdmin):
     list_display = ('name', 'description')
     search_fields = ('name',)
 
-@admin.register(ProductFilter)
-class ProductFilterAdmin(admin.ModelAdmin):
-    list_display = ('product', 'filter')
-    search_fields = ('product__name', 'filter__name')
-    list_filter = ('filter',)
+@admin.register(FilterValue)
+class FilterValueAdmin(admin.ModelAdmin):
+    list_display = ('filter', 'value')
+    search_fields = ('filter__name', 'value')
+
+@admin.register(ProductFilterValue)
+class ProductFilterValueAdmin(admin.ModelAdmin):
+    list_display = ('product', 'filter_value')
+    search_fields = ('product__name', 'filter_value__value')
+    list_filter = ('filter_value__filter',)
