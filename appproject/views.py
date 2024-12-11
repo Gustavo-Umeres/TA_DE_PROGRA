@@ -12,6 +12,7 @@ from django.template.loader import render_to_string
 from django.utils.html import strip_tags
 from django.core.mail import EmailMultiAlternatives
 import os
+from decimal import Decimal
 
 from .forms import UserRegisterForm, UserEditForm
 from .models import Product, Category, Cart, Order, OrderItem, Review, CartItem, ProductSize, ProductSizeDiscount,Filter,FilterValue
@@ -268,25 +269,24 @@ def product_detail(request, product_id):
     # Obtener los precios mínimos, descuentos y stock para cada talla del producto
     sizes_data = []
     for size in product.sizes.all():
-        min_price = size.price
-        discounted_price = None
-        stock = size.stock  # Asegurar incluir el stock
-        
+        size_price = size.price
+        stock = size.stock
         active_discount = ProductSizeDiscount.objects.filter(
             product_size=size,
             discount__is_active=True,
             discount__start_date__lte=timezone.now(),
             discount__end_date__gte=timezone.now()
         ).first()
-        
-        if active_discount:
+
+        discounted_price = None
+        if active_discount and active_discount.discounted_price:
             discounted_price = active_discount.discounted_price
-        
+
         sizes_data.append({
             'size': size.size,
-            'min_price': min_price,
-            'discounted_price': discounted_price,
-            'stock': stock,  # Incluir el stock aquí
+            'min_price': f"{size_price:.2f}",  # Formateado con 2 decimales
+            'discounted_price': f"{discounted_price:.2f}" if discounted_price else None,
+            'stock': stock,
         })
 
     # Obtener los filtros y valores de filtro aplicables al producto
@@ -300,10 +300,8 @@ def product_detail(request, product_id):
         'product': product,
         'sizes_data': sizes_data,
         'reviews': reviews,
-        'images': product_images,  # Pasar imágenes al contexto
-        'filter_values': filter_values  # Pasar valores de filtro al contexto
+        'images': product_images,
     })
-
 
 
 @login_required
@@ -668,57 +666,21 @@ def products_by_category(request, category_id):
     })
 
 
-def get_products_with_min_price():
-    products = Product.objects.filter(sizes__price__isnull=False).distinct().order_by('id')
-    product_data = []
-    for product in products:
-        min_price = product.sizes.aggregate(Min('price'))['price__min']
-        discounted_price = None
-        active_discount = ProductSizeDiscount.objects.filter(
-            product_size__product=product,
-            discount__is_active=True,
-            discount__start_date__lte=timezone.now(),
-            discount__end_date__gte=timezone.now()
-        ).order_by('discounted_price').first()
-        if active_discount and active_discount.discounted_price is not None:
-            discounted_price = active_discount.discounted_price
-        product_data.append({
-            'product': product,
-            'min_price': min_price,
-            'discounted_price': discounted_price,
-        })
-    return product_data
-
+from decimal import Decimal
 def product_list_view(request):
     # Obtener todos los productos con al menos una talla que tenga precio
     products = Product.objects.filter(sizes__price__isnull=False).distinct().order_by('id')
-    
+
     # Construir datos de producto con precios mínimos, descuentos e imágenes
     product_data = []
     for product in products:
-        min_price = product.sizes.aggregate(Min('price'))['price__min']
-        discounted_price = None
-        
-        # Verificar si hay un descuento activo en alguna talla
-        active_discount = ProductSizeDiscount.objects.filter(
-            product_size__product=product,
-            discount__is_active=True,
-            discount__start_date__lte=timezone.now(),
-            discount__end_date__gte=timezone.now()
-        ).first()
-        
-        if active_discount:
-            discounted_price = active_discount.discounted_price
-        
-        # Obtener la primera imagen del producto
+        min_price = get_min_price_and_discount(product)  # Usa la función utilitaria
         first_image = product.images.first().image.url if product.images.exists() else None
 
-        # Agregar información del producto a la lista de productos
         product_data.append({
             'product': product,
             'min_price': min_price,
-            'discounted_price': discounted_price,
-            'first_image': first_image  # Incluir la primera imagen
+            'first_image': first_image,  # Incluir la primera imagen
         })
 
     # Paginación
@@ -730,3 +692,26 @@ def product_list_view(request):
         'page_obj': page_obj,
         'categories': Category.objects.all(),
     })
+    
+def get_min_price_and_discount(product):
+    min_price = Decimal('Infinity')  # Inicializa con un valor muy alto
+    discounted_price = None
+
+    for size in product.sizes.all():
+        size_price = size.price
+        active_discount = ProductSizeDiscount.objects.filter(
+            product_size=size,
+            discount__is_active=True,
+            discount__start_date__lte=timezone.now(),
+            discount__end_date__gte=timezone.now()
+        ).first()
+
+        # Si hay descuento, considera el precio con descuento
+        if active_discount and active_discount.discounted_price is not None:
+            size_price = min(size_price, active_discount.discounted_price)
+
+        # Actualizar el precio mínimo global
+        if size_price < min_price:
+            min_price = size_price
+
+    return round(min_price, 2) if min_price != Decimal('Infinity') else None

@@ -8,45 +8,54 @@
         
         <form id="form-registro" method="post" class="max-w-md mx-auto bg-white p-6 rounded-lg shadow-md">
             {% csrf_token %}
-            
+        
             <!-- Nombre de Usuario -->
             <div class="form-row mb-4">
                 <label for="id_username" id="label-username" class="block text-gray-700 font-medium mb-2">Nombre de Usuario:</label>
                 {{ form.username|add_class:"w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+                <p class="text-red-500 text-sm mt-1">{{ form.username.errors }}</p>
             </div>
-
+        
             <!-- Nombre -->
             <div class="form-row mb-4">
                 <label for="id_first_name" id="label-firstname" class="block text-gray-700 font-medium mb-2">Nombre:</label>
                 {{ form.first_name|add_class:"w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+                <p class="text-red-500 text-sm mt-1">{{ form.first_name.errors }}</p>
             </div>
-
+        
             <!-- Apellido -->
             <div class="form-row mb-4">
                 <label for="id_last_name" id="label-lastname" class="block text-gray-700 font-medium mb-2">Apellido:</label>
                 {{ form.last_name|add_class:"w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+                <p class="text-red-500 text-sm mt-1">{{ form.last_name.errors }}</p>
             </div>
-
+        
             <!-- Correo Electrónico -->
             <div class="form-row mb-4">
                 <label for="id_email" id="label-email" class="block text-gray-700 font-medium mb-2">Correo Electrónico:</label>
                 {{ form.email|add_class:"w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+                <p class="text-red-500 text-sm mt-1">{{ form.email.errors }}</p>
             </div>
-
+        
             <!-- Contraseña -->
             <div class="form-row mb-4">
                 <label for="id_password1" id="label-password1" class="block text-gray-700 font-medium mb-2">Contraseña:</label>
                 {{ form.password1|add_class:"w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+                <p class="text-red-500 text-sm mt-1">{{ form.password1.errors }}</p>
             </div>
-
+        
             <!-- Confirmar Contraseña -->
             <div class="form-row mb-4">
                 <label for="id_password2" id="label-password2" class="block text-gray-700 font-medium mb-2">Confirmar Contraseña:</label>
                 {{ form.password2|add_class:"w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" }}
+                <p class="text-red-500 text-sm mt-1">{{ form.password2.errors }}</p>
             </div>
-
+        
             <!-- Botón de registrar -->
             <button id="btn-registrar" type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">Registrar</button>
+        
+            <!-- Errores generales -->
+            <p class="text-red-500 text-sm mt-4">{{ form.non_field_errors }}</p>
         </form>
 
         <p id="tienes-cuenta" class="text-center text-gray-600 mt-4">¿Ya tienes una cuenta? <a id="link-iniciar-sesion" href="{% url 'login' %}" class="text-blue-500 hover:underline">Inicia sesión aquí</a>.</p>
