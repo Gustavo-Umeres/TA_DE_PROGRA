@@ -13,10 +13,8 @@ from django.utils.html import strip_tags
 from django.core.mail import EmailMultiAlternatives
 import os
 from decimal import Decimal
-
 from .forms import UserRegisterForm, UserEditForm
 from .models import Product, Category, Cart, Order, OrderItem, Review, CartItem, ProductSize, ProductSizeDiscount,Filter,FilterValue
-
 import mercadopago
 
 User = get_user_model()
@@ -34,7 +32,7 @@ def home(request):
     ).values_list('product_size__product_id', flat=True).distinct()
     
     # Filtrar los productos con los IDs obtenidos y limitarlos a 4
-    products = Product.objects.filter(id__in=discounted_product_ids).distinct()[:4]
+    products = Product.objects.filter(id__in=discounted_product_ids).distinct()[:8]
     
     # Construir datos de producto con precios mínimos, descuentos e imágenes
     product_data = []
@@ -61,7 +59,6 @@ def home(request):
         })
 
     return render(request, 'pages/home.html', {
-        'categories': categories,
         'products': product_data
     })
 
@@ -302,7 +299,7 @@ def product_detail(request, product_id):
         'reviews': reviews,
         'images': product_images,
     })
-
+    
 
 @login_required
 def update_cart(request):
@@ -666,7 +663,6 @@ def products_by_category(request, category_id):
     })
 
 
-from decimal import Decimal
 def product_list_view(request):
     # Obtener todos los productos con al menos una talla que tenga precio
     products = Product.objects.filter(sizes__price__isnull=False).distinct().order_by('id')
@@ -715,3 +711,4 @@ def get_min_price_and_discount(product):
             min_price = size_price
 
     return round(min_price, 2) if min_price != Decimal('Infinity') else None
+
