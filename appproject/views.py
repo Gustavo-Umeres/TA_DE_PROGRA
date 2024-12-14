@@ -525,6 +525,7 @@ def send_order_confirmation_email(request, order):
             'total_price': order.total,
             'shipping_address': order.shipping_address,
         })
+        print(html_message)  # Imprime el HTML generado para verificar que no haya errores.
         plain_message = strip_tags(html_message)
         
         email = EmailMultiAlternatives(

@@ -118,15 +118,13 @@ SESSION_ENGINE = 'django.contrib.sessions.backends.db'
 SESSION_COOKIE_AGE = 3600  # 1 hora
 
 # Configuración de correo electrónico
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')  # Asegúrate de que esté bien configurado
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')  # Asegúrate de que esté bien configurado
-import logging
-logger = logging.getLogger(__name__)
-logger.debug("Email User: %s", EMAIL_HOST_USER)
+DEFAULT_FROM_EMAIL = os.getenv('EMAIL_HOST_USER') 
+
 
 
 # Llaves de Mercadopago
@@ -141,3 +139,6 @@ SESSION_COOKIE_SECURE = True  # Asegúrate de que sea seguro en producción
 
 CORS_ALLOW_CREDENTIALS = True
 CORS_ORIGIN_ALLOW_ALL = True
+
+
+SESSION_SAVE_EVERY_REQUEST = True  # Guarda la sesión en cada solicitud
