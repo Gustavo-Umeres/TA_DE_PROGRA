@@ -88,12 +88,11 @@
                     <p class="text-gray-600">Aún no hay reseñas para este producto.</p>
                 {% endif %}
             </div>
-
             <!-- Formulario para agregar una reseña -->
             {% if user.is_authenticated %}
                 <div id="add-review-section" class="mt-8">
                     <h2 class="text-xl font-semibold text-gray-800 mb-4">Agrega una Reseña</h2>
-                    <form method="POST" class="space-y-4">
+                    <form method="POST" action="{% url 'add_review' product.id %}" class="space-y-4">
                         {% csrf_token %}
                         <div class="form-group">
                             <label for="rating" class="block font-medium text-gray-700">Calificación:</label>
@@ -109,6 +108,7 @@
             {% else %}
                 <p class="text-center mt-4 text-gray-600"><a href="{% url 'login' %}" class="text-blue-500 hover:underline">Inicia sesión</a> para dejar una reseña.</p>
             {% endif %}
+
         </div>
     </div>
 </div>

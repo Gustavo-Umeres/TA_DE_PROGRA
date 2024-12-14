@@ -14,9 +14,14 @@ from django.core.mail import EmailMultiAlternatives
 import os
 from decimal import Decimal
 from .forms import UserRegisterForm, UserEditForm
-from .models import Product, Category, Cart, Order, OrderItem, Review, CartItem, ProductSize, ProductSizeDiscount,Filter,FilterValue
+from .models import Product, Category, Cart, Order, OrderItem, Review, CartItem, ProductSize, ProductSizeDiscount,Filter,FilterValue,Review
 import mercadopago
-
+from django.contrib import messages
+from django.shortcuts import redirect, get_object_or_404
+from django.utils import timezone
+from django.conf import settings
+import mercadopago
+import os
 User = get_user_model()
 
 
@@ -329,25 +334,36 @@ def update_cart(request):
     return redirect('view_cart')
 
 
-# Vista de agregar revisión
+
+
 @login_required
 def add_review(request, product_id):
     if request.method == 'POST':
         rating = request.POST.get('rating')
         comment = request.POST.get('comment')
         product = get_object_or_404(Product, id=product_id)
-        
-        # Verificar que se haya ingresado una calificación y un comentario
+
+        # Verificar si los datos de rating y comment son correctos
+        print(f"Producto ID: {product_id}")
+        print(f"Calificación: {rating}")
+        print(f"Comentario: {comment}")
+
         if rating and comment:
-            # Crear la revisión
-            Review.objects.create(
-                product=product,
-                user=request.user,
-                rating=rating,
-                comment=comment
-            )
-            messages.success(request, 'Revisión agregada exitosamente.')
+            try:
+                # Crear la reseña
+                review = Review.objects.create(
+                    product=product,
+                    user=request.user,
+                    rating=rating,
+                    comment=comment
+                )
+                print(f"Reseña creada: {review}")
+                messages.success(request, 'Revisión agregada exitosamente.')
+            except Exception as e:
+                print(f"Error al crear la reseña: {e}")
+                messages.error(request, 'Hubo un error al agregar la reseña. Intenta nuevamente.')
         else:
+            print("Error: No se proporcionaron calificación o comentario.")
             messages.error(request, 'Por favor, proporciona una calificación y un comentario.')
 
         return redirect('product_detail', product_id=product.id)
@@ -362,13 +378,6 @@ def logout_view(request):
     logout(request)
     messages.success(request, 'Has cerrado sesión exitosamente.')
     return redirect('home')
-
-from django.contrib import messages
-from django.shortcuts import redirect, get_object_or_404
-from django.utils import timezone
-from django.conf import settings
-import mercadopago
-import os
 
 @login_required
 def procesar_pago(request):
