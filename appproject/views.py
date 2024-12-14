@@ -362,19 +362,35 @@ def logout_view(request):
     logout(request)
     messages.success(request, 'Has cerrado sesión exitosamente.')
     return redirect('home')
+
+from django.contrib import messages
+from django.shortcuts import redirect, get_object_or_404
+from django.utils import timezone
+from django.conf import settings
+import mercadopago
+import os
+
 @login_required
 def procesar_pago(request):
+    # Iniciar SDK de MercadoPago
     sdk = mercadopago.SDK(settings.MERCADOPAGO_ACCESS_TOKEN)
+
+    # Obtener datos de envío y total desde la sesión
     shipping_address = request.session.get('shipping_address')
     total_price = request.session.get('total_price')
 
+    # Verificar si los datos de envío y total están presentes
     if not shipping_address or total_price is None:
         messages.error(request, 'Hubo un problema con los datos de envío o el total a pagar.')
         return redirect('checkout')
 
     # Obtener el carrito del usuario actual
-    cart = get_object_or_404(Cart, user=request.user)
-    cart_items = cart.items.all()
+    try:
+        cart = get_object_or_404(Cart, user=request.user)
+        cart_items = cart.items.all()
+    except Cart.DoesNotExist:
+        messages.error(request, 'No se encontró el carrito para tu usuario.')
+        return redirect('checkout')
 
     # Crear lista de ítems con precios considerando los descuentos
     items = []
@@ -411,13 +427,21 @@ def procesar_pago(request):
             "pending": f"{os.getenv('DOMAIN')}/pagos/pendiente/",
         },
         "auto_return": "approved",
-        "shipment": {"receiver_address": {"street_name": shipping_address}}
+        "shipment": {"receiver_address": {"street_name": shipping_address}},
     }
 
     # Crear preferencia de pago en Mercado Pago
-    preference_response = sdk.preference().create(preference_data)
-    preference = preference_response["response"]
+    try:
+        preference_response = sdk.preference().create(preference_data)
+        preference = preference_response["response"]
+    except Exception as e:
+        messages.error(request, 'Hubo un error al procesar el pago.')
+        return redirect('checkout')
+
+    # Redirigir al usuario a la URL de Mercado Pago
     return redirect(preference['init_point'])
+
+
 @login_required
 def pago_exito(request):
     try:

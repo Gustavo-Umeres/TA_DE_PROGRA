@@ -19,7 +19,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 # Configuración de seguridad
 SECRET_KEY = os.getenv('SECRET_KEY', get_random_secret_key())
-DEBUG = os.getenv('DEBUG', 'False') == 'True'
+DEBUG = 'True'
 ALLOWED_HOSTS = ['.onrender.com', '127.0.0.1', 'localhost']
 
 # Aplicaciones instaladas
@@ -115,15 +115,19 @@ LOGOUT_REDIRECT_URL = 'home'
 
 # Configuración de sesiones
 SESSION_ENGINE = 'django.contrib.sessions.backends.db'
-SESSION_COOKIE_AGE = 1209600  # 2 semanas
+SESSION_COOKIE_AGE = 3600  # 1 hora
 
 # Configuración de correo electrónico
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')  # Asegúrate de que esté bien configurado
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')  # Asegúrate de que esté bien configurado
+import logging
+logger = logging.getLogger(__name__)
+logger.debug("Email User: %s", EMAIL_HOST_USER)
+
 
 # Llaves de Mercadopago
 MERCADOPAGO_PUBLIC_KEY = os.getenv('MERCADOPAGO_PUBLIC_KEY')
@@ -131,3 +135,9 @@ MERCADOPAGO_ACCESS_TOKEN = os.getenv('MERCADOPAGO_ACCESS_TOKEN')
 
 # Campo de modelo predeterminado
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+SESSION_COOKIE_SECURE = True  # Asegúrate de que sea seguro en producción
+
+
+CORS_ALLOW_CREDENTIALS = True
+CORS_ORIGIN_ALLOW_ALL = True
